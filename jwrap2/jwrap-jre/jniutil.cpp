@@ -73,7 +73,7 @@ extern "C" const wchar_t* run_class_main(const wchar_t * x)
     uout << "before" << std::endl;
     static thread_local std::wstring b;
     b = JniUtil::RunClassMain(jvm, L"jwrap.boot.App", args, boot, bootJar);
-    uout << "after: " << wide_to_ansi(b) << std::endl;
+    uout << "after: " << b << std::endl;
     return b.c_str();
 }
 
