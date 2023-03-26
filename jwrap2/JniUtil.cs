@@ -23,14 +23,12 @@ public class JniUtil
         IntPtr hModule = LoadLibraryW($"{appDir}\\boot.dll");
         if (hModule == IntPtr.Zero)
         {
-            Console.WriteLine("Failed to load library.");
             return "Failed to load library.";
         }
 
         IntPtr pFunc = GetProcAddress(hModule, "run_class_main");
         if (pFunc == IntPtr.Zero)
         {
-            Console.WriteLine("Failed to get function address.");
             FreeLibrary(hModule);
             return "Failed to get function address.";
         }
@@ -60,13 +58,8 @@ public class JniUtil
             items, argsElem);
         XDocument doc = new XDocument(root);
 
-        //string format = "Hello, %s!";
-        //IntPtr argList = IntPtr.Zero;
-        //int result = myFunction("aaaあああ");
         IntPtr result = myFunction(doc.ToString());
         string str = Marshal.PtrToStringUni(result);
-
-        Console.WriteLine("Result: {0}", str);
 
         //FreeLibrary(hModule);
         return str;

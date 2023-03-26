@@ -14,15 +14,10 @@ JVM create_java_vm(const std::wstring &jvmDllPath, const std::vector<std::wstrin
     std::wstring join_classpath = (std::wstring(L"-Djava.class.path=")+strutil::join(classPaths, L";"));
     std::wstring join_libpath = (std::wstring(L"-Djava.library.path=")+strutil::join(libraryPaths, L";"));
 
-    //const char* argv[] = {"-Djava.compiler=NONE",
-    //                      "-Djava.class.path=."}; //"-verbose:jni"
-    //const int argc = static_cast<int>(sizeof(argv) / sizeof(argv[0]));
-
     JavaVMInitArgs jvm_args;
 
     JavaVM* vm = nullptr;
     JNIEnv* env = nullptr;
-    //JNI_GetDefaultJavaVMInitArgs(&jvm_args);
 
     jvm_args.version = JNI_VERSION_1_6;
     jvm_args.ignoreUnrecognized = JNI_TRUE;

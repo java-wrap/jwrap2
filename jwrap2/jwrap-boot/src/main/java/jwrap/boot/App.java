@@ -36,29 +36,29 @@ public class App {
 	}
 
 	private static void run(String[] args) throws Exception {
-		System.out.println("jwrap.boot.App.main(1x)");
-		System.out.println(args.length);
-		for (int i = 0; i < args.length; i++) {
-			System.out.println("args[" + i + "]=" + args[i]);
-		}
+		//System.out.println("jwrap.boot.App.main(1x)");
+		//System.out.println(args.length);
+		//for (int i = 0; i < args.length; i++) {
+		//	System.out.println("args[" + i + "]=" + args[i]);
+		//}
 		String jar = args[0];
 		String main = args[1];
 		String[] arguments = new String[args.length - 2];
-		System.out.println("jwrap.boot.App.main(2)");
+		//System.out.println("jwrap.boot.App.main(2)");
 		for (int i = 2; i < args.length; i++) {
 			arguments[i - 2] = args[i];
 		}
 		if (!new File(jar).exists()) {
 			throw new Exception("JAR file not exist: " + jar);
 		}
-		System.out.println("jwrap.boot.App.main(3)");
+		//System.out.println("jwrap.boot.App.main(3)");
 		URL url = (new File(jar)).toURI().toURL();
 		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
 		Class<?> globalMain = classLoader.loadClass(main);
 		Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
-		System.out.println("jwrap.boot.App.main(4)");
+		//System.out.println("jwrap.boot.App.main(4)");
 		staticMethod.invoke(null, new Object[] { arguments });
-		System.out.println("jwrap.boot.App.main(5)");
+		//System.out.println("jwrap.boot.App.main(5)");
 	}
 
 	private static String stacktraceString(Exception e) {

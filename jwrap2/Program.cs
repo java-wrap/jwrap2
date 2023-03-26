@@ -1,8 +1,8 @@
+#if !JWRAP_GEN
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
 
-#if !JWRAP_GEN
 namespace jwrap;
 
 using System;
@@ -26,7 +26,9 @@ public static class Program
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine(e.ToString());
+            //Console.Error.WriteLine(e.ToString());
+            Win32Api.Message(e.ToString(), Path.GetFileName(Application.ExecutablePath));
+            Environment.Exit(1);
         }
     }
 
@@ -64,7 +66,6 @@ public static class Program
         return installPath;
     }
 
-#if JWRAP_HEAD
     private static void SeparateMain(string[] args)
     {
         Misc.Log("SeparateMain(1)");
@@ -144,123 +145,8 @@ public static class Program
         }
 
         return;
-        
-#if false
-        string java = $@"{jre}\bin\java.exe";
-        Misc.Log(java);
-        Misc.Log(File.Exists(java));
-        Misc.Log(mainClass);
-        //string jarFile = Regex.Replace(Application.ExecutablePath, "[.][eE][xX][eE]$", ".jar");
-        Misc.Log("SeparateMain(5)");
-        ProcessStartInfo psi = new ProcessStartInfo(java, $"-cp \"{jarPath}\\main.jar\" {mainClass} {argList}");
-        psi.RedirectStandardOutput = true;
-        psi.RedirectStandardError = true;
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-        Process process = new Process();
-        process.StartInfo = psi;
-        //Process process = new Process();
-        //process.StartInfo.FileName = java;
-        //process.StartInfo.Arguments = $"-cp \"{jarFile}\" global.Main {argList}";
-        //process.StartInfo.UseShellExecute = false;
-        process.OutputDataReceived += (sender, e) =>
-        {
-            Console.WriteLine(e.Data);
-            try
-            {
-                using (StreamWriter writer = File.AppendText(Application.ExecutablePath + ".log"))
-                {
-                    writer.WriteLine(e.Data);
-                }
-            }
-            catch (Exception /*exception*/)
-            {
-            }
-        };
-        process.ErrorDataReceived += (sender, e) =>
-        {
-            Console.WriteLine(e.Data);
-            try
-            {
-                using (StreamWriter writer = File.AppendText(Application.ExecutablePath + ".log"))
-                {
-                    writer.WriteLine(e.Data);
-                }
-            }
-            catch (Exception /*exception*/)
-            {
-            }
-        };
-        Misc.Log("SeparateMain(6)");
-        try
-        {
-            File.Delete(Application.ExecutablePath + ".log");
-        }
-        catch (Exception /*e*/)
-        {
-        }
-
-        Misc.Log("SeparateMain(7)");
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        process.WaitForExit();
-        Misc.Log("SeparateMain(8)");
-        Environment.Exit(process.ExitCode);
-#endif
     }
-#else
-    private static void SeparateMain(string[] args)
-    {
-        Misc.Log("(1)");
-        string jarPath = new FileInfo(args[0]).FullName;
-        jarPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(jarPath));
-        ArraySegment<string> arySeg = new ArraySegment<string>(args, 1, args.Length - 1);
-        args = arySeg.ToArray();
-        string argList = "";
-        for (int i = 0; i < args.Length; i++)
-        {
-            //if (i > 0) argList += " ";
-            //argList += $"\"{args[i]}\"";
-            if (i > 0) argList += ",";
-            argList += Convert.ToBase64String(Encoding.UTF8.GetBytes(args[i]));
-        }
-        Misc.Log("["+argList+"]");
-        string jre = PrepareJre(Constants.JRE_URL);
-        string java = $@"{jre}\bin\java.exe";
-        string exeDir = Directory.GetParent(Application.ExecutablePath).FullName;
-        string bootJar = $"{exeDir}\\jwrap.boot.jar";
-        string mainClass = "global.Main";
-        mainClass = Convert.ToBase64String(Encoding.UTF8.GetBytes(mainClass));
-        
-        Misc.Log("(2)");
-        ProcessStartInfo psi =
- new ProcessStartInfo(java, $"-cp \"{bootJar}\" jwrap.boot.App --debug {Constants.DEBUG} --jar {jarPath} --main {mainClass} --args \"{argList}\"");
-        psi.RedirectStandardOutput = true;
-        psi.RedirectStandardError = true;
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-        Process process = new Process();
-        process.StartInfo = psi;
 
-        process.OutputDataReceived += (sender, e) =>
-        {
-            Console.WriteLine(e.Data);
-        };
-        process.ErrorDataReceived += (sender, e) =>
-        {
-            Console.WriteLine(e.Data);
-        };
-
-        Misc.Log("(3)");
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        process.WaitForExit();
-        Misc.Log("(4)");
-        Environment.Exit(process.ExitCode);
-    }
-#endif
     private static void DownloadBinaryFromUrl(string url, string destinationPath)
     {
         WebRequest objRequest = System.Net.HttpWebRequest.Create(url);

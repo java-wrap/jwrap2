@@ -55,7 +55,6 @@ public class Win32Res
 
     public static byte[] ReadResourceData(string fileName, string resType, string resName)
     {
-        Console.WriteLine($"ReadResourceData({fileName}, {resType}, {resName})");
         IntPtr hModule = LoadLibraryW(fileName);
         if (hModule == IntPtr.Zero)
         {

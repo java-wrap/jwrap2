@@ -31,8 +31,6 @@ public class Misc
                 int fileSize = (int)fs.Length;
                 // バイナリデータをbyte[]に読み込む
                 byte[] data = br.ReadBytes(fileSize);
-                // 読み込んだデータを表示
-                //Console.WriteLine(BitConverter.ToString(data));
                 return data;
             }
         }
