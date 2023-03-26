@@ -83,6 +83,8 @@ public static class Program
         Misc.Log(root.XPathSelectElement("./main"));
         Misc.Log(root.XPathSelectElement("./guid"));
         Misc.Log(root.XPathSelectElement("./sha512"));
+        byte[] bootJarData = Convert.FromBase64String(root.XPathSelectElement("./boot.jar").Value);
+        byte[] bootDllData = Convert.FromBase64String(root.XPathSelectElement("./boot.dll").Value);
         byte[] jarData = Convert.FromBase64String(root.XPathSelectElement("./jar").Value);
         Misc.Log($"jarData={jarData.Length}");
         string guid = root.XPathSelectElement("./guid").Value;
@@ -91,18 +93,20 @@ public static class Program
         Misc.Log($"sha512={sha512}");
         string mainClass = root.XPathSelectElement("./main").Value;
         var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var rootPath = $"{profilePath}\\.jwap\\.jar";
+        var rootPath = $"{profilePath}\\.jwap\\.app";
         Directory.CreateDirectory(rootPath);
         //string jarPath = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}.jar";
-        string jarPath = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}";
-        Misc.Log(jarPath);
+        string appDir = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}";
+        Misc.Log(appDir);
         Misc.Log("SeparateMain(3)");
-        if (!Directory.Exists(jarPath))
+        if (!Directory.Exists(appDir))
         {
             Misc.Log("SeparateMain(3.1)");
             string timestamp = GetTimeStampString();
-            Directory.CreateDirectory($"{jarPath}.{timestamp}");
-            Misc.WriteBinaryFile($"{jarPath}.{timestamp}\\main.jar", jarData);
+            Directory.CreateDirectory($"{appDir}.{timestamp}");
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.jar", bootJarData);
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.dll", bootDllData);
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\main.jar", jarData);
             var dlls = root.XPathSelectElements("//dll");
             Misc.Log("SeparateMain(3.2)");
             foreach (var dll in dlls)
@@ -116,12 +120,12 @@ public static class Program
                 byte[] dllBinary = Convert.FromBase64String(dll.XPathSelectElement("./binary").Value);
                 Misc.Log("SeparateMain(3.3.2)");
                 Misc.Log($"Writing {dllName}");
-                Misc.WriteBinaryFile($"{jarPath}.{timestamp}\\{dllName}", dllBinary);
+                Misc.WriteBinaryFile($"{appDir}.{timestamp}\\{dllName}", dllBinary);
                 Misc.Log("SeparateMain(3.3.3)");
             }
 
             Misc.Log("SeparateMain(3.4)");
-            Directory.Move($"{jarPath}.{timestamp}", jarPath);
+            Directory.Move($"{appDir}.{timestamp}", appDir);
             Misc.Log("SeparateMain(3.5)");
         }
 
@@ -129,7 +133,8 @@ public static class Program
         string jre = PrepareJre(Constants.JRE_URL);
         Misc.Log(jre);
 
-        JniUtil.RunClassMain(jre, mainClass, args, new string[] { $"{jarPath}\\main.jar" });
+        //JniUtil.RunClassMain(jre, mainClass, args, new string[] { $"{jarPath}\\main.jar" });
+        JniUtil.RunClassMain(jre, mainClass, args, appDir);
 
         return;
         

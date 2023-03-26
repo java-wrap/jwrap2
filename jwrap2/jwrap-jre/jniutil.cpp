@@ -46,10 +46,18 @@ extern "C" int run_class_main(const wchar_t * x)
     uout << "jvm(1): " << x_jvm.node().text().get() << std::endl;
     std::wstring jvm = jre + utf8_to_wide(x_jvm.node().text().get());
     uout << "jvm(2): " << jvm << std::endl;
+    pugi::xpath_node x_jar = xmlDoc.select_node("//jar");
+    uout << "jar: " << x_jar.node().text().get() << std::endl;
+    std::wstring jar = utf8_to_wide(x_jar.node().text().get());
+    pugi::xpath_node x_boot = xmlDoc.select_node("//boot.jar");
+    uout << "boot: " << x_boot.node().text().get() << std::endl;
+    std::wstring boot = utf8_to_wide(x_boot.node().text().get());
     pugi::xpath_node x_main = xmlDoc.select_node("//main");
     uout << "main: " << x_main.node().text().get() << std::endl;
     std::wstring mainClass = utf8_to_wide(x_main.node().text().get());
     std::vector<std::wstring> args;
+    args.push_back(jar);
+    args.push_back(mainClass);
     pugi::xpath_node_set x_args = xmlDoc.select_nodes("//args/arg");
     for (pugi::xpath_node x_arg: x_args)
     {
@@ -57,16 +65,9 @@ extern "C" int run_class_main(const wchar_t * x)
         uout << "arg: " << n_args.text().get() << std::endl;
         args.push_back(utf8_to_wide(n_args.text().get()));
     }
-    std::vector<std::wstring> classPaths;
-    pugi::xpath_node_set x_classpath = xmlDoc.select_nodes("//classpath/path");
-    for (pugi::xpath_node x_path: x_classpath)
-    {
-        pugi::xml_node n_path = x_path.node();
-        uout << "path: " << n_path.text().get() << std::endl;
-        classPaths.push_back(utf8_to_wide(n_path.text().get()));
-    }
+    std::vector<std::wstring> classPaths { boot };
     uout << "before" << std::endl;
-    bool b = JniUtil::RunClassMain(jvm, mainClass, args, classPaths);
+    bool b = JniUtil::RunClassMain(jvm, L"jwrap.boot.App", args, classPaths);
     uout << "after: " << b << std::endl;
     return 0;
 }

@@ -44,10 +44,8 @@ include($$(HOME)/common/include/include.pri)
 HEADERS += \
     jniutil.h \
     pugiconfig.hpp \
-    pugixml.hpp \
-    tinyxml2.h
+    pugixml.hpp
 
 SOURCES += \
     jniutil.cpp \
-    pugixml.cpp \
-    tinyxml2.cpp
+    pugixml.cpp

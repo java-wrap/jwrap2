@@ -18,9 +18,9 @@ public class JniUtil
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
     delegate int run_class_main_proto(string x);
 
-    public static int RunClassMain(string jreRoot, string mainClass, string[] args, string[] classPaths)
+    public static int RunClassMain(string jreRoot, string mainClass, string[] args, string appDir)
     {
-        IntPtr hModule = LoadLibraryW(@"C:\Users\Public\root\.repo\base2\java\jwrap-jre\jwrap-jre.dll");
+        IntPtr hModule = LoadLibraryW($"{appDir}\\boot.dll");
         if (hModule == IntPtr.Zero)
         {
             Console.WriteLine("Failed to load library.");
@@ -42,22 +42,24 @@ public class JniUtil
         {
             argsElem.Add(new XElement("arg", arg));
         }
+
+#if false
         XElement classpathElem = new XElement("classpath");
-        foreach (var path in classPaths)
+        foreach (var path in new string[] { $"{appDir}\\main.jar" })
         {
             classpathElem.Add(new XElement("path", path));
         }
+#endif
+
         XElement items = new XElement("items");
-        items.Add(new XElement("item", "abc"));
-        items.Add(new XElement("item", "あああ"));
-        items.Add(new XElement("item", "いいい"));
         XElement root = new XElement("root",
             new XElement("jre", jreRoot),
-            //new XElement("jvm", jvmDll),
+            new XElement("jar", $"{appDir}\\main.jar"),
             new XElement("main", mainClass),
-            items, argsElem, classpathElem);
+            new XElement("boot.jar", $"{appDir}\\boot.jar"),
+            items, argsElem);
         XDocument doc = new XDocument(root);
-        
+
         //string format = "Hello, %s!";
         //IntPtr argList = IntPtr.Zero;
         //int result = myFunction("aaaあああ");
