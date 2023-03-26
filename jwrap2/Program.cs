@@ -140,6 +140,7 @@ public static class Program
         if (errorMessage != "")
         {
             Win32Api.Message(errorMessage, Path.GetFileName(Application.ExecutablePath));
+            Environment.Exit(1);
         }
 
         return;

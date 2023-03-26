@@ -2,12 +2,12 @@
 set -uvx
 set -e
 cwd=`pwd`
-rm -rf bin obj
-dotnet build -c Release jwrap.csproj
-cp -rp bin/Release/net462/*.exe $HOME/cmd/
-rm -rf bin obj
-dotnet build -c Release jwrapw.csproj
-cp -rp bin/Release/net462/*.exe $HOME/cmd/
+#rm -rf bin obj
+#dotnet build -c Release jwrap.csproj
+#cp -rp bin/Release/net462/*.exe $HOME/cmd/
+#rm -rf bin obj
+#dotnet build -c Release jwrapw.csproj
+#cp -rp bin/Release/net462/*.exe $HOME/cmd/
 rm -rf bin obj
 dotnet build -c Release jwrap-head.csproj
 cp -rp bin/Release/net462/*.exe $HOME/cmd/
