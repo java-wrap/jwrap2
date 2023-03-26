@@ -1,4 +1,4 @@
-﻿#if false
+﻿#if true
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +12,16 @@ public class Win32Api
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     static extern int LoadStringW(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    internal static extern int MessageBoxW(
+        IntPtr hWnd, string lpText, string lpCaption, uint uType);
+
+    public static void Message(string message, string title = null)
+    {
+        if (title == null) title = "Message";
+        MessageBoxW(IntPtr.Zero, message, title, 0);
+    }
 
     public static string LoadString(uint uID)
     {

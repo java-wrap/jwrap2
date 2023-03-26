@@ -136,7 +136,11 @@ public static class Program
         Misc.Log(jre);
 
         //JniUtil.RunClassMain(jre, mainClass, args, new string[] { $"{jarPath}\\main.jar" });
-        JniUtil.RunClassMain(jre, mainClass, args, appDir);
+        string errorMessage = JniUtil.RunClassMain(jre, mainClass, args, appDir);
+        if (errorMessage != "")
+        {
+            Win32Api.Message(errorMessage, Path.GetFileName(Application.ExecutablePath));
+        }
 
         return;
         
