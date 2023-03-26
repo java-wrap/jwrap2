@@ -15,15 +15,19 @@ import java.util.Base64;
 
 public class App {
 	public static void main(String[] args) {
-		System.out.println("jwrap.boot.App.main(1)");
-		String jar = args[0];
-		String main = args[1];
-		String[] arguments = new String[args.length - 2];
-		for (int i = 2; i < args.length; i++) {
-			arguments[i - 2] = args[i];
-		}
-		System.out.println("jwrap.boot.App.main(2)");
 		try {
+			System.out.println("jwrap.boot.App.main(1x)");
+			System.out.println(args.length);
+			for (int i = 0; i < args.length; i++) {
+				System.out.println("args[" + i + "]=" + args[i]);
+			}
+			String jar = args[0];
+			String main = args[1];
+			String[] arguments = new String[args.length - 2];
+			System.out.println("jwrap.boot.App.main(2)");
+			for (int i = 2; i < args.length; i++) {
+				arguments[i - 2] = args[i];
+			}
 			if (!new File(jar).exists()) {
 				throw new Exception("JAR file not exist: " + jar);
 			}

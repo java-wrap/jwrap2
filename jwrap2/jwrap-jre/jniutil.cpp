@@ -65,6 +65,7 @@ extern "C" int run_class_main(const wchar_t * x)
         uout << "arg: " << n_args.text().get() << std::endl;
         args.push_back(utf8_to_wide(n_args.text().get()));
     }
+    uout << "args.size()=" << args.size() << std::endl;
     std::vector<std::wstring> classPaths { boot };
     uout << "before" << std::endl;
     bool b = JniUtil::RunClassMain(jvm, L"jwrap.boot.App", args, classPaths);
@@ -134,15 +135,16 @@ bool JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstring &mainC
                 env->SetObjectArrayElement(args, 0, env->NewStringUTF("arg1"));
                 env->SetObjectArrayElement(args, 1, env->NewStringUTF("arg2"));
 #else
+                uout << "args.size()=" << args.size() << std::endl;
                 jobjectArray mainArgs = env->NewObjectArray(args.size(), env->FindClass("java/lang/String"), nullptr);
                 for (std::size_t i=0; i<args.size(); i++)
                 {
-                    env->SetObjectArrayElement(mainArgs, 0, env->NewStringUTF(wide_to_utf8(args[i]).c_str()));
+                    env->SetObjectArrayElement(mainArgs, i, env->NewStringUTF(wide_to_utf8(args[i]).c_str()));
                 }
 #endif
 
                 // メソッドを呼び出し
-                env->CallStaticVoidMethod(cls, mid, args);
+                env->CallStaticVoidMethod(cls, mid, mainArgs);
             }
         }
 

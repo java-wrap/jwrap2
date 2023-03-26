@@ -18,8 +18,9 @@ rm -rf bin obj
 dotnet build -c Release jwrap-gen.csproj
 ilmerge /out:$HOME/cmd/jwrap-gen.exe /wildcards bin/Release/net462/jwrap-gen.exe bin/Release/net462/*.dll
 cd $cwd/jwrap-jre
+scons -c
 scons
 cp -rp jwrap-jre.dll $HOME/cmd/
 cd $cwd/jwrap-boot
 gradle jar
-cp -rp ./build/libs/jwrap.boot.jar $HOME/cmd/jwrap-boot.jar
+cp -rp ./build/libs/jwrap-boot.jar $HOME/cmd/
