@@ -15,7 +15,13 @@ import java.util.Base64;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.xml.xpath.*;
+import org.xml.sax.InputSource;
+import org.w3c.dom.NodeList;
+import java.io.StringReader;
+
 public class App {
+	/*
 	public static void main(String[] args) {
 		try {
 			run(args);
@@ -24,42 +30,85 @@ public class App {
 			System.exit(1);
 		}
 	}
+	*/
 
+	public static String tryToRun(String xml) {
+		try {
+			run(xml);
+			return "";
+		} catch (Exception ex) {
+			return stacktraceString(ex);
+		}
+	}
+
+	/*
 	public static String tryToRun(String[] args) {
 		try {
 			run(args);
 			return "";
 		} catch (Exception ex) {
-			// ex.printStackTrace();
 			return stacktraceString(ex);
 		}
 	}
+	*/
 
+	private static NodeList xpathSearch(String xml, String spec) throws Exception {
+		InputSource source = new InputSource(new StringReader(xml));
+		XPathFactory xpathFactory = XPathFactory.newInstance();
+		XPath xpath = xpathFactory.newXPath();
+		XPathExpression expr = xpath.compile(spec);
+		Object result = expr.evaluate(source, XPathConstants.NODESET);
+		return (NodeList) result;
+	}
+
+	private static void run(String xml) throws Exception {
+		//System.out.println(xml);
+		NodeList argsList = xpathSearch(xml, "//args/arg/text()");
+		String[] args = new String[argsList.getLength()];
+		for (int i = 0; i < argsList.getLength(); i++) {
+			//System.out.println(argsList.item(i).getNodeValue());
+			args[i] = argsList.item(i).getNodeValue();
+		}
+		NodeList jarList = xpathSearch(xml, "//jar/text()");
+		//System.out.println("jar=" + jarList.item(0).getNodeValue());
+		String jar = jarList.item(0).getNodeValue();
+		NodeList mainList = xpathSearch(xml, "//main/text()");
+		//System.out.println("main=" + mainList.item(0).getNodeValue());
+		String main = mainList.item(0).getNodeValue();
+		URL url = (new File(jar)).toURI().toURL();
+		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
+		Class<?> globalMain = classLoader.loadClass(main);
+		Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
+		staticMethod.invoke(null, new Object[] { args });
+	}
+
+	/*
 	private static void run(String[] args) throws Exception {
-		//System.out.println("jwrap.boot.App.main(1x)");
-		//System.out.println(args.length);
-		//for (int i = 0; i < args.length; i++) {
-		//	System.out.println("args[" + i + "]=" + args[i]);
-		//}
+		// System.out.println("jwrap.boot.App.main(1x)");
+		// System.out.println(args.length);
+		// for (int i = 0; i < args.length; i++) {
+		// System.out.println("args[" + i + "]=" + args[i]);
+		// }
 		String jar = args[0];
 		String main = args[1];
 		String[] arguments = new String[args.length - 2];
-		//System.out.println("jwrap.boot.App.main(2)");
+		// System.out.println("jwrap.boot.App.main(2)");
 		for (int i = 2; i < args.length; i++) {
 			arguments[i - 2] = args[i];
 		}
 		if (!new File(jar).exists()) {
 			throw new Exception("JAR file not exist: " + jar);
 		}
-		//System.out.println("jwrap.boot.App.main(3)");
+		// System.out.println("jwrap.boot.App.main(3)");
 		URL url = (new File(jar)).toURI().toURL();
 		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
 		Class<?> globalMain = classLoader.loadClass(main);
 		Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
-		//System.out.println("jwrap.boot.App.main(4)");
+		// System.out.println("jwrap.boot.App.main(4)");
 		staticMethod.invoke(null, new Object[] { arguments });
-		//System.out.println("jwrap.boot.App.main(5)");
+		// System.out.println("jwrap.boot.App.main(5)");
 	}
+	*/
 
 	private static String stacktraceString(Exception e) {
 		StringWriter sw = new StringWriter();
