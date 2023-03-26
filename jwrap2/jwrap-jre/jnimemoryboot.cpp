@@ -9,9 +9,10 @@
 #include <vector>
 #include "wstrutil.h"
 
-JVM create_java_vm(const std::wstring &jvmDllPath, const std::vector<std::wstring> &classPaths)
+JVM create_java_vm(const std::wstring &jvmDllPath, const std::vector<std::wstring> &classPaths, const std::vector<std::wstring> &libraryPaths)
 {
     std::wstring join_classpath = (std::wstring(L"-Djava.class.path=")+strutil::join(classPaths, L";"));
+    std::wstring join_libpath = (std::wstring(L"-Djava.library.path=")+strutil::join(libraryPaths, L";"));
 
     //const char* argv[] = {"-Djava.compiler=NONE",
     //                      "-Djava.class.path=."}; //"-verbose:jni"
@@ -26,11 +27,17 @@ JVM create_java_vm(const std::wstring &jvmDllPath, const std::vector<std::wstrin
     jvm_args.version = JNI_VERSION_1_6;
     jvm_args.ignoreUnrecognized = JNI_TRUE;
     jvm_args.nOptions = 0;
-    JavaVMOption options[1];
+    JavaVMOption options[2];
     if (classPaths.size() > 0)
     {
-        options[0].optionString = strdup(wide_to_ansi(join_classpath).c_str());
-        jvm_args.nOptions = 1;
+        options[jvm_args.nOptions].optionString = strdup(wide_to_ansi(join_classpath).c_str());
+        jvm_args.nOptions += 1;
+        jvm_args.options = options;
+    }
+    if (libraryPaths.size() > 0)
+    {
+        options[jvm_args.nOptions].optionString = strdup(wide_to_ansi(join_libpath).c_str());
+        jvm_args.nOptions += 1;
         jvm_args.options = options;
     }
 

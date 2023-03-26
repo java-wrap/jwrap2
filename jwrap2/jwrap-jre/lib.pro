@@ -16,8 +16,8 @@ gcc:QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-parameter -Wno-unused-function
 msvc:QMAKE_CXXFLAGS += /bigobj
 
 INCLUDEPATH += $$PWD
-INCLUDEPATH += C:/Users/Public/root/.software/zulu17-jdk/include
-INCLUDEPATH += C:/Users/Public/root/.software/zulu17-jdk/include/win32
+INCLUDEPATH += $$(SPIDER)/.software/zulu17-jdk/include
+INCLUDEPATH += $$(SPIDER)/.software/zulu17-jdk/include/win32
 
 #gcc:LIBS += -lssl -lcrypto
 

@@ -138,7 +138,10 @@ std::wstring JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstrin
 #else
 
     std::vector<std::wstring> classPaths {bootJarPath};
-    JVM jvm = create_java_vm(jvmDll, classPaths);
+    std::filesystem::path path(bootJarPath);
+    std::wstring parent = path.parent_path().wstring();
+    std::vector<std::wstring> libraryPaths { parent };
+    JVM jvm = create_java_vm(jvmDll, classPaths, libraryPaths);
     if (!jvm.vm)
     {
         std::cerr<<"Failed to Create JavaVM\n";
