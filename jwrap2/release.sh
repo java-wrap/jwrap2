@@ -20,3 +20,6 @@ ilmerge /out:$HOME/cmd/jwrap-gen.exe /wildcards bin/Release/net462/jwrap-gen.exe
 cd $cwd/jwrap-jre
 scons
 cp -rp jwrap-jre.dll $HOME/cmd/
+cd $cwd/jwrap-boot
+gradle jar
+cp -rp ./build/libs/jwrap.boot.jar $HOME/cmd/jwrap-boot.jar
