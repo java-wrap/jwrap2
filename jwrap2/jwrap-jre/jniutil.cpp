@@ -27,7 +27,7 @@ std::string read_binary_file(const std::wstring& filename)
     return buffer;
 }
 
-extern "C" int run_class_main(const wchar_t * x)
+extern "C" const wchar_t* run_class_main(const wchar_t * x)
 {
     std::string xml = wide_to_utf8(x);
     unicode_ostream uout(std::cout);
@@ -35,7 +35,7 @@ extern "C" int run_class_main(const wchar_t * x)
     pugi::xml_document xmlDoc;
     pugi::xml_parse_result result = xmlDoc.load_string(xml.c_str());
     if (!result)
-        return 1;
+        return L"Invalid xml";
     pugi::xpath_node x_jre = xmlDoc.select_node("//jre");
     uout << "jre: " << x_jre.node().text().get() << std::endl;
     std::wstring jre = utf8_to_wide(x_jre.node().text().get());
@@ -43,7 +43,7 @@ extern "C" int run_class_main(const wchar_t * x)
     uout << jwrap_conf_xml << std::endl;
     pugi::xml_document xmlDoc2;
     if(!xmlDoc2.load_string(jwrap_conf_xml.c_str()))
-        return 1;
+        return L"Invalid jwrap.conf.xml";
     pugi::xpath_node x_jvm = xmlDoc2.select_node("//jvm");
     uout << "jvm(1): " << x_jvm.node().text().get() << std::endl;
     std::wstring jvm = jre + utf8_to_wide(x_jvm.node().text().get());
@@ -71,19 +71,26 @@ extern "C" int run_class_main(const wchar_t * x)
     std::string bootJar = read_binary_file(boot.c_str());
     //std::vector<std::wstring> classPaths { boot };
     uout << "before" << std::endl;
-    bool b = JniUtil::RunClassMain(jvm, L"jwrap.boot.App", args, boot, bootJar);
-    uout << "after: " << b << std::endl;
-    return 0;
+    static thread_local std::wstring b;
+    b = JniUtil::RunClassMain(jvm, L"jwrap.boot.App", args, boot, bootJar);
+    uout << "after: " << wide_to_ansi(b) << std::endl;
+    return b.c_str();
 }
-
-
 
 JniUtil::JniUtil()
 {
 }
 
+std::string jstringToString(JNIEnv* env, jstring jStr)
+{
+  const char* cStr = env->GetStringUTFChars(jStr, nullptr);
+  std::string str(cStr);
+  env->ReleaseStringUTFChars(jStr, cStr);
+  return str;
+}
+
 //bool JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstring &mainClass, const std::vector<std::wstring> &args, const std::vector<std::wstring> &classPaths)
-bool JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstring &mainClass, const std::vector<std::wstring> &args, const std::wstring &bootJarPath, const std::string bootJar)
+std::wstring JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstring &mainClass, const std::vector<std::wstring> &args, const std::wstring &bootJarPath, const std::string bootJar)
 {
     unicode_ostream uout(std::cout);
 
@@ -135,80 +142,38 @@ bool JniUtil::RunClassMain(const std::wstring &jvmDll, const std::wstring &mainC
     if (!jvm.vm)
     {
         std::cerr<<"Failed to Create JavaVM\n";
-        return false;
+        return L"Failed to Create JavaVM\n";
     }
 
-    /*
-    JavaVM *jvm;                      // JVMのポインタ
-    JNIEnv *env;                      // JNIの環境ポインタ
-    JavaVMInitArgs vm_args;           // JVMの初期化引数
-    JavaVMOption options[1];          // JVMのオプション
-    long status;                      // ステータス
-    jclass cls;                        // クラス
-    jmethodID mid;                     // メソッドID
+    std::wstring errorMessage;
+    // クラスをロード
+    std::wstring mainClass_copy = mainClass;
+    strutil::replace_all(mainClass_copy, L".", L"/");
+    jclass cls = jvm.env->FindClass(wide_to_ansi(mainClass_copy).c_str());
 
-    std::string join_classpath = "";
-    for (std::size_t i=0; i<classPaths.size(); i++)
-    {
-        if (!join_classpath.empty())
-        {
-            join_classpath += ";";
-        }
-        join_classpath += wide_to_ansi(classPaths[i]);
-    }
-    uout << "join_classpath: " << join_classpath << std::endl;
-    // JVMのオプションを設定
-    options[0].optionString = strdup(::format("-Djava.class.path=%s", join_classpath.c_str()).c_str());
+    if (cls != nullptr) {
+        // メソッドIDを取得
+        //jmethodID mid = jvm.env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");
+        jmethodID mid = jvm.env->GetStaticMethodID(cls, "tryToRun", "([Ljava/lang/String;)Ljava/lang/String;");
 
-    // JVMの初期化引数を設定
-    vm_args.version = JNI_VERSION_1_6;
-    vm_args.nOptions = 1;
-    vm_args.options = options;
-    vm_args.ignoreUnrecognized = JNI_TRUE;
-
-    // JVMを初期化
-    //status = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
-    // JVMを初期化
-    HINSTANCE hinstLib = LoadLibraryW(jvmDll.c_str());
-    typedef jint (JNICALL *PtrCreateJavaVM)(JavaVM **, void **, void *);
-    PtrCreateJavaVM ptrCreateJavaVM = (PtrCreateJavaVM)GetProcAddress(hinstLib,"JNI_CreateJavaVM");
-    status = ptrCreateJavaVM(&jvm, (void**)&env, &vm_args);
-    */
-
-    /*if (status != JNI_ERR)*/ {
-        // クラスをロード
-        std::wstring mainClass_copy = mainClass;
-        strutil::replace_all(mainClass_copy, L".", L"/");
-        jclass cls = jvm.env->FindClass(wide_to_ansi(mainClass_copy).c_str());
-
-        if (cls != nullptr) {
-            // メソッドIDを取得
-            jmethodID mid = jvm.env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");
-
-            if (mid != nullptr) {
-                // 引数を設定
-#if 0x0
-                jobjectArray args = env->NewObjectArray(2, env->FindClass("java/lang/String"), nullptr);
-                env->SetObjectArrayElement(args, 0, env->NewStringUTF("arg1"));
-                env->SetObjectArrayElement(args, 1, env->NewStringUTF("arg2"));
-#else
-                uout << "args.size()=" << args.size() << std::endl;
-                jobjectArray mainArgs = jvm.env->NewObjectArray(args.size(), jvm.env->FindClass("java/lang/String"), nullptr);
-                for (std::size_t i=0; i<args.size(); i++)
-                {
-                    jvm.env->SetObjectArrayElement(mainArgs, i, jvm.env->NewStringUTF(wide_to_utf8(args[i]).c_str()));
-                }
-#endif
-
-                // メソッドを呼び出し
-                jvm.env->CallStaticVoidMethod(cls, mid, mainArgs);
+        if (mid != nullptr) {
+            // 引数を設定
+            uout << "args.size()=" << args.size() << std::endl;
+            jobjectArray mainArgs = jvm.env->NewObjectArray(args.size(), jvm.env->FindClass("java/lang/String"), nullptr);
+            for (std::size_t i=0; i<args.size(); i++)
+            {
+                jvm.env->SetObjectArrayElement(mainArgs, i, jvm.env->NewStringUTF(wide_to_utf8(args[i]).c_str()));
             }
+            // メソッドを呼び出し
+            //jvm.env->CallStaticVoidMethod(cls, mid, mainArgs);
+            jobject ret = jvm.env->CallStaticObjectMethod(cls, mid, mainArgs);
+            errorMessage = utf8_to_wide(jstringToString(jvm.env, (jstring)ret));
         }
-
-        // JVMを破棄
-        jvm.vm->DestroyJavaVM();
     }
+
+    // JVMを破棄
+    jvm.vm->DestroyJavaVM();
 #endif
 
-    return true;
+    return errorMessage;
 }

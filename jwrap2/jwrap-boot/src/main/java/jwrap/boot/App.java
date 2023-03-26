@@ -12,42 +12,66 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class App {
 	public static void main(String[] args) {
 		try {
-			System.out.println("jwrap.boot.App.main(1x)");
-			System.out.println(args.length);
-			for (int i = 0; i < args.length; i++) {
-				System.out.println("args[" + i + "]=" + args[i]);
-			}
-			String jar = args[0];
-			String main = args[1];
-			String[] arguments = new String[args.length - 2];
-			System.out.println("jwrap.boot.App.main(2)");
-			for (int i = 2; i < args.length; i++) {
-				arguments[i - 2] = args[i];
-			}
-			if (!new File(jar).exists()) {
-				throw new Exception("JAR file not exist: " + jar);
-			}
-			System.out.println("jwrap.boot.App.main(3)");
-			URL url = (new File(jar)).toURI().toURL();
-			URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
-			Class<?> globalMain = classLoader.loadClass(main);
-			Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
-			System.out.println("jwrap.boot.App.main(4)");
-			staticMethod.invoke(null, new Object[] { arguments });
-			System.out.println("jwrap.boot.App.main(5)");
+			run(args);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			System.exit(1);
 		}
 	}
 
-	private static String getParentDirPath(String filePath) {
-		Path path = Paths.get(filePath);
-		Path parentPath = path.getParent();
-		return parentPath.toString();
+	public static String tryToRun(String[] args) {
+		try {
+			run(args);
+			return "";
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			return stacktraceString(ex);
+		}
 	}
+
+	private static void run(String[] args) throws Exception {
+		System.out.println("jwrap.boot.App.main(1x)");
+		System.out.println(args.length);
+		for (int i = 0; i < args.length; i++) {
+			System.out.println("args[" + i + "]=" + args[i]);
+		}
+		String jar = args[0];
+		String main = args[1];
+		String[] arguments = new String[args.length - 2];
+		System.out.println("jwrap.boot.App.main(2)");
+		for (int i = 2; i < args.length; i++) {
+			arguments[i - 2] = args[i];
+		}
+		if (!new File(jar).exists()) {
+			throw new Exception("JAR file not exist: " + jar);
+		}
+		System.out.println("jwrap.boot.App.main(3)");
+		URL url = (new File(jar)).toURI().toURL();
+		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
+		Class<?> globalMain = classLoader.loadClass(main);
+		Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
+		System.out.println("jwrap.boot.App.main(4)");
+		staticMethod.invoke(null, new Object[] { arguments });
+		System.out.println("jwrap.boot.App.main(5)");
+	}
+
+	private static String stacktraceString(Exception e) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		String stackTrace = sw.toString();
+		return stackTrace;
+	}
+
+	/*
+	 * private static String getParentDirPath(String filePath) { Path path =
+	 * Paths.get(filePath); Path parentPath = path.getParent(); return
+	 * parentPath.toString(); }
+	 */
 }

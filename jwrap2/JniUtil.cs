@@ -16,15 +16,15 @@ public class JniUtil
     static extern bool FreeLibrary(IntPtr hModule);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-    delegate int run_class_main_proto(string x);
+    delegate IntPtr run_class_main_proto(string x);
 
-    public static int RunClassMain(string jreRoot, string mainClass, string[] args, string appDir)
+    public static string RunClassMain(string jreRoot, string mainClass, string[] args, string appDir)
     {
         IntPtr hModule = LoadLibraryW($"{appDir}\\boot.dll");
         if (hModule == IntPtr.Zero)
         {
             Console.WriteLine("Failed to load library.");
-            return 1;
+            return "Failed to load library.";
         }
 
         IntPtr pFunc = GetProcAddress(hModule, "run_class_main");
@@ -32,7 +32,7 @@ public class JniUtil
         {
             Console.WriteLine("Failed to get function address.");
             FreeLibrary(hModule);
-            return 1;
+            return "Failed to get function address.";
         }
 
         run_class_main_proto myFunction = Marshal.GetDelegateForFunctionPointer<run_class_main_proto>(pFunc);
@@ -63,11 +63,12 @@ public class JniUtil
         //string format = "Hello, %s!";
         //IntPtr argList = IntPtr.Zero;
         //int result = myFunction("aaaあああ");
-        int result = myFunction(doc.ToString());
+        IntPtr result = myFunction(doc.ToString());
+        string str = Marshal.PtrToStringUni(result);
 
-        Console.WriteLine("Result: {0}", result);
+        Console.WriteLine("Result: {0}", str);
 
         //FreeLibrary(hModule);
-        return result;
+        return str;
     }
 }
