@@ -89,7 +89,7 @@ public static class Program
         byte[] jarData = Convert.FromBase64String(root.XPathSelectElement("./jar").Value);
         Misc.Log($"jarData={jarData.Length}");
         string guid = root.XPathSelectElement("./guid").Value;
-        string sha512 = root.XPathSelectElement("./sha512").Value;
+        string sha512 = root.XPathSelectElement("./sha").Value;
         Misc.Log($"guid={guid}");
         Misc.Log($"sha512={sha512}");
         string mainClass = root.XPathSelectElement("./main").Value;

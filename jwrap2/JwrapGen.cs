@@ -69,7 +69,7 @@ public class JwrapGen
                     XElement root = new XElement("xml",
                         new XElement("main", mainClass),
                         new XElement("guid", Misc.GetGuidString()),
-                        new XElement("sha512", Misc.GetSha512String(jarData)),
+                        new XElement("sha", Misc.GetSha512String(jarData)),
                         new XElement("boot.jar", Convert.ToBase64String(bootJarData)),
                         new XElement("boot.dll", Convert.ToBase64String(bootDllData)),
                         new XElement("jar", Convert.ToBase64String(jarData))

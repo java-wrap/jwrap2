@@ -57,7 +57,8 @@ public class Misc
 
     public static string GetSha512String(byte[] data)
     {
-        using (SHA512 shaM = new SHA512Managed())
+        //using (SHA512 shaM = new SHA512Managed())
+        using (SHA256 shaM = new SHA256Managed())
         {
             byte[] hashBytes = shaM.ComputeHash(data);
             string hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
