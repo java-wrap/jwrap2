@@ -1,4 +1,6 @@
-QT += core xmlpatterns
+#QT += core xmlpatterns
+
+CONFIG -= qt
 
 CONFIG += c++17
 CONFIG += force_debug_info
@@ -42,10 +44,12 @@ include($$(HOME)/common/include/include.pri)
 #include($$(HOME)/common/common2/common2.pri)
 
 HEADERS += \
+    jnimemoryboot.h \
     jniutil.h \
     pugiconfig.hpp \
     pugixml.hpp
 
 SOURCES += \
+    jnimemoryboot.cpp \
     jniutil.cpp \
     pugixml.cpp
