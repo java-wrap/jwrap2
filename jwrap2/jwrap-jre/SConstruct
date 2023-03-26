@@ -1,0 +1,16 @@
+from os import getenv
+
+env = Environment(tools=['mingw'], CXXFLAGS="-std=c++20")
+env.Append( CPPPATH=[getenv("HOME") + '/common/include'] )
+env.Append( CPPPATH=['/mingw64/include/libxml2'] )
+env.Append( CPPPATH=['C:/Users/Public/root/.software/zulu17-jdk/include'] )
+env.Append( CPPPATH=['C:/Users/Public/root/.software/zulu17-jdk/include/win32'] )
+
+envA = env.Clone()
+envA.Append( LINKFLAGS=['-static'] )
+
+files = Glob('*.cpp')
+#envA.Program(target='build/example', source=files)
+#envA.SharedLibrary(target='build/example-shared', source=files)
+#envA.StaticLibrary(target='build/example-static', source=files)
+envA.SharedLibrary(target='jwrap-jre', source=files)

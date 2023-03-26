@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 set -uvx
 set -e
+cwd=`pwd`
 rm -rf bin obj
 dotnet build -c Release jwrap.csproj
 cp -rp bin/Release/net462/*.exe $HOME/cmd/
@@ -16,7 +17,6 @@ cp -rp bin/Release/net462/*.exe $HOME/cmd/
 rm -rf bin obj
 dotnet build -c Release jwrap-gen.csproj
 ilmerge /out:$HOME/cmd/jwrap-gen.exe /wildcards bin/Release/net462/jwrap-gen.exe bin/Release/net462/*.dll
-cd jwrap.boot
-rm -rf bin build
-gradle jar
-cp -rp build/libs/jwrap.boot.jar $HOME/cmd/
+cd $cwd/jwrap-jre
+scons
+cp -rp jwrap-jre.dll $HOME/cmd/
