@@ -7,29 +7,32 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include "wstrutil.h"
 
-JVM create_java_vm(const std::wstring &jvmDllPath)
+JVM create_java_vm(const std::wstring &jvmDllPath, const std::vector<std::wstring> &classPaths)
 {
-    const char* argv[] = {"-Djava.compiler=NONE",
-                          "-Djava.class.path=."}; //"-verbose:jni"
-    const int argc = static_cast<int>(sizeof(argv) / sizeof(argv[0]));
+    std::wstring join_classpath = (std::wstring(L"-Djava.class.path=")+strutil::join(classPaths, L";"));
+
+    //const char* argv[] = {"-Djava.compiler=NONE",
+    //                      "-Djava.class.path=."}; //"-verbose:jni"
+    //const int argc = static_cast<int>(sizeof(argv) / sizeof(argv[0]));
 
     JavaVMInitArgs jvm_args;
-    JavaVMOption options[argc];
-
-    for (int i = 0; i < argc; ++i)
-    {
-        options[i].optionString = const_cast<char*>(argv[i]);
-    }
 
     JavaVM* vm = nullptr;
     JNIEnv* env = nullptr;
     //JNI_GetDefaultJavaVMInitArgs(&jvm_args);
 
-    jvm_args.version = JNI_VERSION_1_8;
-    jvm_args.nOptions = argc;
-    jvm_args.options = options;
-    jvm_args.ignoreUnrecognized = false;
+    jvm_args.version = JNI_VERSION_1_6;
+    jvm_args.ignoreUnrecognized = JNI_TRUE;
+    jvm_args.nOptions = 0;
+    JavaVMOption options[1];
+    if (classPaths.size() > 0)
+    {
+        options[0].optionString = strdup(wide_to_ansi(join_classpath).c_str());
+        jvm_args.nOptions = 1;
+        jvm_args.options = options;
+    }
 
     HINSTANCE hinstLib = LoadLibraryW(jvmDllPath.c_str());
     typedef jint (JNICALL *PtrCreateJavaVM)(JavaVM **, void **, void *);
@@ -303,54 +306,4 @@ bool load_jar(JNIEnv* env, const std::vector<std::uint8_t> &jar_data, bool ignor
     env->DeleteGlobalRef(jis);
     env->DeleteGlobalRef(bais);
     return true;
-}
-
-int Xmain(const std::wstring &jvmDllPath, const std::string &bootJar)
-{
-    JVM jvm = create_java_vm(jvmDllPath);
-    if (!jvm.vm)
-    {
-        std::cerr<<"Failed to Create JavaVM\n";
-        return 0;
-    }
-
-    std::vector<std::uint8_t> jar_data = std::vector<std::uint8_t>(bootJar.begin(), bootJar.end());
-
-    if (load_jar(jvm.env, jar_data, true))
-    {
-        std::cout<<"Jar loaded successfully\n";
-        jclass cls;                        // クラス
-        jmethodID mid;                     // メソッドID
-        cls = jvm.env->FindClass("global/Main");
-
-        if (cls != nullptr) {
-            // メソッドIDを取得
-            mid = jvm.env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");
-
-            if (mid != nullptr) {
-                // 引数を設定
-#if 0x1
-                jobjectArray args = jvm.env->NewObjectArray(2, jvm.env->FindClass("java/lang/String"), nullptr);
-                jvm.env->SetObjectArrayElement(args, 0, jvm.env->NewStringUTF("arg1"));
-                jvm.env->SetObjectArrayElement(args, 1, jvm.env->NewStringUTF("arg2"));
-#else
-                jobjectArray mainArgs = env->NewObjectArray(args.length(), env->FindClass("java/lang/String"), nullptr);
-                for (int i=0; i<args.length(); i++)
-                {
-                    env->SetObjectArrayElement(mainArgs, 0, env->NewStringUTF(args[i].toStdString().c_str()));
-                }
-#endif
-
-                // メソッドを呼び出し
-                jvm.env->CallStaticVoidMethod(cls, mid, args);
-            }
-        }
-    }
-    else
-    {
-        std::cerr<<"Failed to load Jar\n";
-    }
-
-    jvm.vm->DestroyJavaVM();
-    return 0;
 }

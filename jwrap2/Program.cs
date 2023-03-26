@@ -46,7 +46,8 @@ public static class Program
     {
         //string url = $"https://github.com/run-exe/jwrap/releases/download/jre/{name}.zip";
         string name = UrlToStoreName(url);
-        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        //var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); // C:\ProgramData
         var rootPath = $"{profilePath}\\.jwap\\.jre";
         Directory.CreateDirectory(rootPath);
         string timestamp = GetTimeStampString();
@@ -92,7 +93,8 @@ public static class Program
         Misc.Log($"guid={guid}");
         Misc.Log($"sha512={sha512}");
         string mainClass = root.XPathSelectElement("./main").Value;
-        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        //var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); // C:\ProgramData
         var rootPath = $"{profilePath}\\.jwap\\.app";
         Directory.CreateDirectory(rootPath);
         //string jarPath = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}.jar";
