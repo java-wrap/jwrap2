@@ -20,6 +20,8 @@ import org.xml.sax.InputSource;
 import org.w3c.dom.NodeList;
 import java.io.StringReader;
 
+import java.util.Properties;
+
 public class App {
 	/*
 	public static void main(String[] args) {
@@ -62,7 +64,9 @@ public class App {
 	}
 
 	private static void run(String xml) throws Exception {
-		//System.out.println(xml);
+        //Properties props = System.getProperties();
+        //props.list(System.out);
+		System.out.println(xml);
 		NodeList argsList = xpathSearch(xml, "//args/arg/text()");
 		String[] args = new String[argsList.getLength()];
 		for (int i = 0; i < argsList.getLength(); i++) {
@@ -75,6 +79,15 @@ public class App {
 		NodeList mainList = xpathSearch(xml, "//main/text()");
 		//System.out.println("main=" + mainList.item(0).getNodeValue());
 		String main = mainList.item(0).getNodeValue();
+		NodeList propList = xpathSearch(xml, "//prop");
+		for (int i = 0; i < propList.getLength(); i++) {
+			//System.out.println(argsList.item(i).getNodeValue());
+			//System.out.println(propList.item(i).getAttributes().getNamedItem("name").getTextContent());
+			//System.out.println(propList.item(i).getTextContent());
+			String attrName = propList.item(i).getAttributes().getNamedItem("name").getTextContent();
+			String attrValue = propList.item(i).getTextContent();
+			System.setProperty(attrName, attrValue);
+		}
 		URL url = (new File(jar)).toURI().toURL();
 		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
 		Class<?> globalMain = classLoader.loadClass(main);

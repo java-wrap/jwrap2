@@ -1,4 +1,7 @@
-﻿namespace jwrap;
+﻿using System.IO;
+using System.Windows.Forms;
+
+namespace jwrap;
 
 using System;
 using System.Runtime.InteropServices;
@@ -35,6 +38,15 @@ public class JniUtil
 
         run_class_main_proto myFunction = Marshal.GetDelegateForFunctionPointer<run_class_main_proto>(pFunc);
 
+        string appPathProp = Application.ExecutablePath;
+        string appDirProp = Directory.GetParent(Application.ExecutablePath).FullName;
+
+        var appPathElem = new XElement("prop", appPathProp);
+        appPathElem.SetAttributeValue("name", "jwrap.application.path");
+        var appDirElem = new XElement("prop", appDirProp);
+        appDirElem.SetAttributeValue("name", "jwrap.application.directory");
+        XElement propsElem = new XElement("props", appPathElem, appDirElem);
+
         XElement argsElem = new XElement("args");
         foreach (var arg in args)
         {
@@ -55,7 +67,7 @@ public class JniUtil
             new XElement("jar", $"{appDir}\\main.jar"),
             new XElement("main", mainClass),
             new XElement("boot.jar", $"{appDir}\\boot.jar"),
-            items, argsElem);
+            items, argsElem, propsElem);
         XDocument doc = new XDocument(root);
 
         IntPtr result = myFunction(doc.ToString());
