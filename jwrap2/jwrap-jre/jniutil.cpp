@@ -114,29 +114,28 @@ std::wstring JniUtil::RunClassMain(const std::wstring &xml_wide)
     pugi::xpath_node x_jar = xmlDoc.select_node("//jar");
     //uout << "jar: " << x_jar.node().text().get() << std::endl;
     std::wstring jar = utf8_to_wide(x_jar.node().text().get());
+#if 0x0
     pugi::xpath_node x_boot = xmlDoc.select_node("//boot.jar");
     //uout << "boot: " << x_boot.node().text().get() << std::endl;
     std::wstring boot = utf8_to_wide(x_boot.node().text().get());
+#else
+    pugi::xpath_node x_boot = xmlDoc.select_node("//boot.class");
+    //uout << "boot: " << x_boot.node().text().get() << std::endl;
+    std::wstring boot = utf8_to_wide(x_boot.node().text().get());
+#endif
     pugi::xpath_node x_main = xmlDoc.select_node("//main");
     //uout << "main: " << x_main.node().text().get() << std::endl;
     //std::wstring mainClass = utf8_to_wide(x_main.node().text().get());
-#if 0x0
-    std::vector<std::wstring> args;
-    args.push_back(jar);
-    args.push_back(mainClass);
-    pugi::xpath_node_set x_args = xmlDoc.select_nodes("//args/arg");
-    for (pugi::xpath_node x_arg: x_args)
-    {
-        pugi::xml_node n_args = x_arg.node();
-        //uout << "arg: " << n_args.text().get() << std::endl;
-        args.push_back(utf8_to_wide(n_args.text().get()));
-    }
-#endif
     //uout << "args.size()=" << args.size() << std::endl;
+#if 0x0
     std::vector<std::wstring> classPaths {boot};
+#else
+    std::string bootClassBytes = read_binary_file(boot);
+    std::vector<std::wstring> classPaths {};
+#endif
     std::filesystem::path path(boot);
     std::wstring parent = path.parent_path().wstring();
-    std::vector<std::wstring> libraryPaths { parent };
+    std::vector<std::wstring> libraryPaths { parent + L"\\dll" };
     JVM jvm = create_java_vm(jvmDll, classPaths, libraryPaths);
     if (!jvm.vm)
     {
@@ -149,7 +148,11 @@ std::wstring JniUtil::RunClassMain(const std::wstring &xml_wide)
     //std::wstring mainClass_copy = mainClass;
     //strutil::replace_all(mainClass_copy, L".", L"/");
     //jclass cls = jvm.env->FindClass(wide_to_ansi(mainClass_copy).c_str());
+#if 0x0
     jclass cls = jvm.env->FindClass("jwrap/boot/App");
+#else
+    jclass cls = jvm.env->DefineClass("jwrap/boot/App", NULL, (const jbyte *)&bootClassBytes[0], bootClassBytes.size());
+#endif
     if (cls != nullptr) {
         // メソッドIDを取得
         //jmethodID mid = jvm.env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");

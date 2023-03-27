@@ -23,16 +23,6 @@ import java.io.StringReader;
 import java.util.Properties;
 
 public class App {
-	/*
-	public static void main(String[] args) {
-		try {
-			run(args);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.exit(1);
-		}
-	}
-	*/
 
 	public static String tryToRun(String xml) {
 		try {
@@ -42,17 +32,6 @@ public class App {
 			return stacktraceString(ex);
 		}
 	}
-
-	/*
-	public static String tryToRun(String[] args) {
-		try {
-			run(args);
-			return "";
-		} catch (Exception ex) {
-			return stacktraceString(ex);
-		}
-	}
-	*/
 
 	private static NodeList xpathSearch(String xml, String spec) throws Exception {
 		InputSource source = new InputSource(new StringReader(xml));
@@ -64,26 +43,26 @@ public class App {
 	}
 
 	private static void run(String xml) throws Exception {
-        //Properties props = System.getProperties();
-        //props.list(System.out);
-		System.out.println(xml);
+		// Properties props = System.getProperties();
+		// props.list(System.out);
+		// System.out.println(xml);
 		NodeList argsList = xpathSearch(xml, "//args/arg/text()");
 		String[] args = new String[argsList.getLength()];
 		for (int i = 0; i < argsList.getLength(); i++) {
-			//System.out.println(argsList.item(i).getNodeValue());
+			// System.out.println(argsList.item(i).getNodeValue());
 			args[i] = argsList.item(i).getNodeValue();
 		}
 		NodeList jarList = xpathSearch(xml, "//jar/text()");
-		//System.out.println("jar=" + jarList.item(0).getNodeValue());
+		// System.out.println("jar=" + jarList.item(0).getNodeValue());
 		String jar = jarList.item(0).getNodeValue();
 		NodeList mainList = xpathSearch(xml, "//main/text()");
-		//System.out.println("main=" + mainList.item(0).getNodeValue());
+		// System.out.println("main=" + mainList.item(0).getNodeValue());
 		String main = mainList.item(0).getNodeValue();
 		NodeList propList = xpathSearch(xml, "//prop");
 		for (int i = 0; i < propList.getLength(); i++) {
-			//System.out.println(argsList.item(i).getNodeValue());
-			//System.out.println(propList.item(i).getAttributes().getNamedItem("name").getTextContent());
-			//System.out.println(propList.item(i).getTextContent());
+			// System.out.println(argsList.item(i).getNodeValue());
+			// System.out.println(propList.item(i).getAttributes().getNamedItem("name").getTextContent());
+			// System.out.println(propList.item(i).getTextContent());
 			String attrName = propList.item(i).getAttributes().getNamedItem("name").getTextContent();
 			String attrValue = propList.item(i).getTextContent();
 			System.setProperty(attrName, attrValue);
@@ -95,34 +74,6 @@ public class App {
 		staticMethod.invoke(null, new Object[] { args });
 	}
 
-	/*
-	private static void run(String[] args) throws Exception {
-		// System.out.println("jwrap.boot.App.main(1x)");
-		// System.out.println(args.length);
-		// for (int i = 0; i < args.length; i++) {
-		// System.out.println("args[" + i + "]=" + args[i]);
-		// }
-		String jar = args[0];
-		String main = args[1];
-		String[] arguments = new String[args.length - 2];
-		// System.out.println("jwrap.boot.App.main(2)");
-		for (int i = 2; i < args.length; i++) {
-			arguments[i - 2] = args[i];
-		}
-		if (!new File(jar).exists()) {
-			throw new Exception("JAR file not exist: " + jar);
-		}
-		// System.out.println("jwrap.boot.App.main(3)");
-		URL url = (new File(jar)).toURI().toURL();
-		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { url });
-		Class<?> globalMain = classLoader.loadClass(main);
-		Method staticMethod = globalMain.getDeclaredMethod("main", String[].class);
-		// System.out.println("jwrap.boot.App.main(4)");
-		staticMethod.invoke(null, new Object[] { arguments });
-		// System.out.println("jwrap.boot.App.main(5)");
-	}
-	*/
-
 	private static String stacktraceString(Exception e) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
@@ -131,9 +82,4 @@ public class App {
 		return stackTrace;
 	}
 
-	/*
-	 * private static String getParentDirPath(String filePath) { Path path =
-	 * Paths.get(filePath); Path parentPath = path.getParent(); return
-	 * parentPath.toString(); }
-	 */
 }

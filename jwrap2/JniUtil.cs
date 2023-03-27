@@ -66,6 +66,7 @@ public class JniUtil
             new XElement("jre", jreRoot),
             new XElement("jar", $"{appDir}\\main.jar"),
             new XElement("main", mainClass),
+            new XElement("boot.class", $"{appDir}\\boot.class"),
             new XElement("boot.jar", $"{appDir}\\boot.jar"),
             items, argsElem, propsElem);
         XDocument doc = new XDocument(root);

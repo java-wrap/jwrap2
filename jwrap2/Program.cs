@@ -78,14 +78,14 @@ public static class Program
 
         Misc.Log("SeparateMain(2)");
         byte[] buffer = Misc.GetLastUtf8Bytes(Application.ExecutablePath);
-        //string xml = Encoding.UTF8.GetString(Win32Res.ReadResourceData(Application.ExecutablePath, "JWRAP", "XML"));
         string xml = Encoding.UTF8.GetString(buffer);
         XDocument doc = XDocument.Parse(xml);
         var root = doc.Root;
         Misc.Log(root.XPathSelectElement("./main"));
         Misc.Log(root.XPathSelectElement("./guid"));
         Misc.Log(root.XPathSelectElement("./sha512"));
-        byte[] bootJarData = Convert.FromBase64String(root.XPathSelectElement("./boot.jar").Value);
+        byte[] bootClassData = Convert.FromBase64String(root.XPathSelectElement("./boot.class").Value);
+        //byte[] bootJarData = Convert.FromBase64String(root.XPathSelectElement("./boot.jar").Value);
         byte[] bootDllData = Convert.FromBase64String(root.XPathSelectElement("./boot.dll").Value);
         byte[] jarData = Convert.FromBase64String(root.XPathSelectElement("./jar").Value);
         Misc.Log($"jarData={jarData.Length}");
@@ -107,11 +107,16 @@ public static class Program
             Misc.Log("SeparateMain(3.1)");
             string timestamp = GetTimeStampString();
             Directory.CreateDirectory($"{appDir}.{timestamp}");
-            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.jar", bootJarData);
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.class", bootClassData);
+            //Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.jar", bootJarData);
             Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.dll", bootDllData);
             Misc.WriteBinaryFile($"{appDir}.{timestamp}\\main.jar", jarData);
             var dlls = root.XPathSelectElements("//dll");
             Misc.Log("SeparateMain(3.2)");
+            if (dlls.Count() > 0)
+            {
+                Directory.CreateDirectory($"{appDir}.{timestamp}\\dll");
+            }
             foreach (var dll in dlls)
             {
                 Misc.Log("SeparateMain(3.3)");
@@ -123,7 +128,7 @@ public static class Program
                 byte[] dllBinary = Convert.FromBase64String(dll.XPathSelectElement("./binary").Value);
                 Misc.Log("SeparateMain(3.3.2)");
                 Misc.Log($"Writing {dllName}");
-                Misc.WriteBinaryFile($"{appDir}.{timestamp}\\{dllName}", dllBinary);
+                Misc.WriteBinaryFile($"{appDir}.{timestamp}\\dll\\{dllName}", dllBinary);
                 Misc.Log("SeparateMain(3.3.3)");
             }
 

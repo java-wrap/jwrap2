@@ -40,7 +40,8 @@ public class JwrapGen
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed<Options>(options =>
                 {
-                    string bootJarPath = exeDir + $"\\jwrap-boot.jar";
+                    string bootClassPath = exeDir + $"\\jwrap-boot.class";
+                    //string bootJarPath = exeDir + $"\\jwrap-boot.jar";
                     string bootDllPath = exeDir + $"\\jwrap-jre.dll";
                     string windowSuffix = options.window ? "w" : "";
                     string headPath = exeDir + $"\\jwrap{windowSuffix}-head.exe";
@@ -56,7 +57,8 @@ public class JwrapGen
                         throw new Exception($"File not exist: {options.FilePath}");
                     }
 
-                    byte[] bootJarData = Misc.ReadBinaryFile(bootJarPath);
+                    byte[] bootClassData = Misc.ReadBinaryFile(bootClassPath);
+                    //byte[] bootJarData = Misc.ReadBinaryFile(bootJarPath);
                     byte[] bootDllData = Misc.ReadBinaryFile(bootDllPath);
                     byte[] jarData = Misc.ReadBinaryFile(options.FilePath);
                     string exePath = Regex.Replace(options.FilePath, "[.]jar$", ".exe");
@@ -70,7 +72,8 @@ public class JwrapGen
                         new XElement("main", mainClass),
                         new XElement("guid", Misc.GetGuidString()),
                         new XElement("sha", Misc.GetSha512String(jarData)),
-                        new XElement("boot.jar", Convert.ToBase64String(bootJarData)),
+                        new XElement("boot.class", Convert.ToBase64String(bootClassData)),
+                        //new XElement("boot.jar", Convert.ToBase64String(bootJarData)),
                         new XElement("boot.dll", Convert.ToBase64String(bootDllData)),
                         new XElement("jar", Convert.ToBase64String(jarData))
                     );
