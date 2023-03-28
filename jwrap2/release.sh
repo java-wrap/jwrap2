@@ -6,6 +6,7 @@ cwd=`pwd`
 #rm -rf $HOME/cmd/jwrap*
 mkdir -p $HOME/cmd/tmp
 rm -rf $HOME/cmd/tmp/jwrap*
+mkdir -p $cwd/jw/src/main/resources/my_resource
 
 $SPIDER/.software/zulu17-jdk/bin/javac.exe -encoding UTF-8 jwrap-boot/src/main/java/jwrap/boot/App.java
 cp -rp jwrap-boot/src/main/java/jwrap/boot/App.class $HOME/cmd/tmp/jwrap-boot.class
@@ -29,3 +30,6 @@ cp -rp jwrap-jre.dll $HOME/cmd/tmp/
 #cp -rp ./build/libs/jwrap-boot.jar $HOME/cmd/
 
 ls -ltr $HOME/cmd/tmp/jwrap*
+
+cp -rp $HOME/cmd/tmp/jwrap* $cwd/jw/src/main/resources/my_resource/
+find $cwd/jw/src/main/resources/my_resource
