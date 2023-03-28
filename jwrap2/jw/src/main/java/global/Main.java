@@ -1,6 +1,10 @@
 package global;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -8,6 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,19 +39,32 @@ public class Main {
 		System.out.printf("s2=%s\n", s2);
 		String s3 = new String(b2, Charsets.UTF_8);
 		System.out.printf("s3=%s\n", s3);
-		// リソースの取得をシンプルに。
-		URL resourceGuava = Resources.getResource("dummy.txt");
-		InputStream in1 = resourceGuava.openStream();
-		InputStream in2 = resourceGuava.openStream();
-		try {
-			System.out.println(IOUtils.toString(in1, "UTF-8"));
-			byte[] bytes = IOUtils.toByteArray(in2);
-			System.out.println(bytes.length);
-			System.out.println(new String(bytes, "UTF-8"));
-		} finally {
-			IOUtils.closeQuietly(in1);
-			IOUtils.closeQuietly(in2);
+
+		Pattern pattern;
+		pattern = Pattern.compile(".*");
+		//pattern = Pattern.compile("./my_resource");
+		final Collection<String> list = ResourceList.getResources(pattern);
+		for (final String name : list) {
+			System.out.println("name: " + name);
 		}
+
+//		InputStream inputStream = Main.class.getResourceAsStream("/");
+//		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+//		String line;
+//		while ((line = reader.readLine()) != null) {
+//			System.out.println(line);
+//		}
+//
+//		ClassLoader classLoader = Main.class.getClassLoader();
+//		URL resource = classLoader.getResource(".");
+//		File folder = new File(resource.getFile());
+//		File[] listOfFiles = folder.listFiles();
+//		for (File file : listOfFiles) {
+//			System.out.println(file.getName());
+//			if (file.isFile()) {
+//				System.out.println(file.getName());
+//			}
+//		}
 
 		Options options = new Options();
 		Option input = new Option("i", "input", true, "input file path");
@@ -126,4 +147,33 @@ public class Main {
 		Path path = Paths.get(uri);
 		return path;
 	}
+
+	private static List<String> getResourceFiles(String path) throws IOException {
+		List<String> filenames = new ArrayList<>();
+
+		URL url = Resources.getResource(path);
+		InputStream in = url.openStream();
+		try (
+				// InputStream in = getResourceAsStream(path);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+			String resource;
+
+			while ((resource = br.readLine()) != null) {
+				filenames.add(resource);
+			}
+		}
+
+		return filenames;
+	}
+
+//	private static InputStream getResourceAsStream(String resource) {
+//	    final InputStream in
+//	            = getContextClassLoader().getResourceAsStream(resource);
+//
+//	    return in == null ? getClass().getResourceAsStream(resource) : in;
+//	}
+//
+//	private static ClassLoader getContextClassLoader() {
+//	    return Thread.currentThread().getContextClassLoader();
+//	}	
 }

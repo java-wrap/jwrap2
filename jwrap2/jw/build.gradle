@@ -42,9 +42,20 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+/*
 task myRun(type: JavaExec) {
     group = 'application'
     classpath = sourceSets.main.runtimeClasspath
     main = 'global.Main'
     args = ['-i', 'input.txt', '-o', 'output.txt', 'other-1', 'other-2']
 }
+*/
+
+task myRun(type: JavaExec) {
+    group = 'application'
+    //classpath = files('build/libs/jw-all.jar')
+    classpath = files(shadowJar.archiveFile)
+    main = 'global.Main'
+    args = ['-i', 'input.txt', '-o', 'output.txt', 'other-1', 'other-2']
+}
+myRun.dependsOn shadowJar
