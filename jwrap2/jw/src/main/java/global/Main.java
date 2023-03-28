@@ -1,6 +1,8 @@
 package global;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,12 +28,80 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 
+import com.fasterxml.jackson.dataformat.smile.*;
+import com.amazon.ion.*;
+import com.amazon.ion.system.IonReaderBuilder;
+import com.amazon.ion.system.IonSystemBuilder;
+import com.amazon.ion.system.IonTextWriterBuilder;
+import com.amazon.ion.util.IonValueUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
+		
+	    IonSystem sys1 = IonSystemBuilder.standard().build();
+
+	    IonList parent = sys1.newEmptyList();
+	    IonInt  child  = sys1.newInt(23);
+	    parent.add(child);
+	    IonStruct struct = sys1.newEmptyStruct();
+	    struct.put("f").newInt(3);
+	    IonList list = sys1.newEmptyList();
+	    list.add().newString("demo");
+	    parent.add(struct);
+	    parent.add(list);
+	    String pretty = parent.toPrettyString();
+	    System.out.println(pretty);
+	    var loader = sys1.getLoader();
+	    IonDatagram loaded = loader.load(pretty);
+	    System.out.println(loaded.toPrettyString());
+	    System.out.println(loaded.getClass().getName());
+	    System.out.println( loaded.size() );
+	    System.out.println( loaded.get(0).toPrettyString() );
+	    System.out.println( loaded.toArray()[0].getClass().getName() );
+	    IonList list2 = (IonList)loaded.toArray()[0];
+	    System.out.println( list2.get(1).toString() );
+	    var loaded2 = loader.load("{f:3}{f:4}");
+	    System.out.println(loaded2.size());
+	    System.out.println(loaded2.toPrettyString());
+	    var binEncoded = loaded2.getBytes();
+	    var binLoaded = loader.load(binEncoded);
+	    System.out.println(binLoaded.toPrettyString());
+
+		//IonTextWriterBuilder textWriterBuilder = IonTextWriterBuilder.standard();
+		IonTextWriterBuilder textWriterBuilder = IonTextWriterBuilder.pretty();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		String ionStr = null;
+		try(IonWriter writer = textWriterBuilder.build(out))
+		{
+		    writer.stepIn(IonType.STRUCT);  // step into a struct
+		    writer.setFieldName("hello");   // set the field name for the next value to be written
+		    writer.writeString("world");    // write the next value
+		    writer.setFieldName("my-list");   // set the field name for the next value to be written
+		    writer.stepIn(IonType.LIST);
+		    writer.writeInt(123);
+		    writer.stepOut();               // step out of the struct
+		    writer.stepOut();               // step out of the struct
+		    writer.close();
+		    ionStr = out.toString(Charsets.UTF_8);
+		    System.out.println(ionStr);
+		}
+
+		ByteArrayInputStream in = new ByteArrayInputStream(ionStr.getBytes(Charsets.UTF_8));
+		IonReaderBuilder readerBuilder = IonReaderBuilder.standard();
+		try (IonReader reader = readerBuilder.build(ionStr)) {
+		    reader.next();                                // position the reader at the first value, a struct
+		    reader.stepIn();                              // step into the struct
+		    reader.next();                                // position the reader at the first value in the struct
+		    String fieldName = reader.getFieldName();     // retrieve the current value's field name
+		    String value = reader.stringValue();          // retrieve the current value's String value
+		    reader.stepOut();                             // step out of the struct
+		    System.out.println(fieldName + " " + value);  // prints "hello world"
+		}
+		System.exit(0);
+
 		System.out.println(Adder.Add2(11, 22));
 		System.out.println("abc".startsWith(""));
 		String s1 = ResourceUtil.GetString("dummy.txt", Charsets.UTF_8);
@@ -42,19 +112,11 @@ public class Main {
 		String s3 = new String(b2, Charsets.UTF_8);
 		System.out.printf("s3=%s\n", s3);
 
-		Pattern pattern;
-		pattern = Pattern.compile(".*");
-		//pattern = Pattern.compile("./my_resource");
-		final Collection<String> list = ResourceList.getResources(pattern);
-		for (final String name : list) {
-			System.out.println("name: " + name);
-		}
-		
 		var resTree = CborTree.LoadResourceTree("my_resource");
 		CborTree.DumpTree(resTree);
 		var dummy = CborTree.GetEntry(resTree, "my_resource/dummy.txt");
 		System.out.println(new String(dummy.GetByteString(), Charsets.UTF_8));
-		
+
 		System.exit(0);
 
 //		InputStream inputStream = Main.class.getResourceAsStream("/");
