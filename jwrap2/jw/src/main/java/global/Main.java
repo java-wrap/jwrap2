@@ -8,39 +8,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Joiner.MapJoiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableTable;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Table;
-import com.google.common.collect.TreeBasedTable;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
-import com.google.common.primitives.Ints;
-
 import com.google.common.io.Resources;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
+		String s1 = ResourceUtil.GetString("dummy.txt", Charsets.UTF_8);
+		System.out.printf("s1=%s\n", s1);
+		byte[] b2 = ResourceUtil.GetBinary("dummy.txt");
+		String s2 = new String(b2, "UTF-8");
+		System.out.printf("s2=%s\n", s2);
+		String s3 = new String(b2, Charsets.UTF_8);
+		System.out.printf("s3=%s\n", s3);
 		// リソースの取得をシンプルに。
 		URL resourceGuava = Resources.getResource("dummy.txt");
 		InputStream in1 = resourceGuava.openStream();
