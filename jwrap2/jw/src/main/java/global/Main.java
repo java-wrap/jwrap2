@@ -43,11 +43,16 @@ public class Main {
 		System.out.println("Hello World!");
 		// リソースの取得をシンプルに。
 		URL resourceGuava = Resources.getResource("dummy.txt");
-		InputStream in = resourceGuava.openStream();
+		InputStream in1 = resourceGuava.openStream();
+		InputStream in2 = resourceGuava.openStream();
 		try {
-			System.out.println(IOUtils.toString(in, "UTF-8"));
+			System.out.println(IOUtils.toString(in1, "UTF-8"));
+			byte[] bytes = IOUtils.toByteArray(in2);
+			System.out.println(bytes.length);
+			System.out.println(new String(bytes, "UTF-8"));
 		} finally {
-			IOUtils.closeQuietly(in);
+			IOUtils.closeQuietly(in1);
+			IOUtils.closeQuietly(in2);
 		}
 
 		Options options = new Options();
