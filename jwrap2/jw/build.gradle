@@ -21,7 +21,23 @@ wrapper() {
     gradleVersion = '7.6.1'
 }
 
+def urlFile = { url ->
+    def parts = url.split("/")
+    def lastPart = parts[-1]
+    println lastPart
+    File file = new File("$buildDir/download/${lastPart}")
+    file.parentFile.mkdirs()
+    if (!file.exists()) file.delete()
+    new URL(url).withInputStream { downloadStream ->
+        file.withOutputStream { fileOut ->
+            fileOut << downloadStream
+        }
+    }
+    files(file.absolutePath)
+}
+
 dependencies {
+    implementation urlFile('https://github.com/javacommons/java.library/releases/download/jar/my.library.jar')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
     implementation 'com.google.guava:guava:31.1-jre'
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-cbor
@@ -41,15 +57,6 @@ application {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-/*
-task myRun(type: JavaExec) {
-    group = 'application'
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'global.Main'
-    args = ['-i', 'input.txt', '-o', 'output.txt', 'other-1', 'other-2']
-}
-*/
 
 task myRun(type: JavaExec) {
     group = 'application'

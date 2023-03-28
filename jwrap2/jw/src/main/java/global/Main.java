@@ -32,6 +32,8 @@ import com.google.common.io.Resources;
 public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
+		System.out.println(Adder.Add2(11, 22));
+		System.out.println("abc".startsWith(""));
 		String s1 = ResourceUtil.GetString("dummy.txt", Charsets.UTF_8);
 		System.out.printf("s1=%s\n", s1);
 		byte[] b2 = ResourceUtil.GetBinary("dummy.txt");
@@ -47,6 +49,13 @@ public class Main {
 		for (final String name : list) {
 			System.out.println("name: " + name);
 		}
+		
+		var resTree = CborTree.LoadResourceTree("my_resource");
+		CborTree.DumpTree(resTree);
+		var dummy = CborTree.GetEntry(resTree, "my_resource/dummy.txt");
+		System.out.println(new String(dummy.GetByteString(), Charsets.UTF_8));
+		
+		System.exit(0);
 
 //		InputStream inputStream = Main.class.getResourceAsStream("/");
 //		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));

@@ -6,6 +6,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.regex.Pattern;
+
 import com.upokecenter.cbor.CBORObject;
 import com.upokecenter.cbor.CBORType;
 import com.upokecenter.cbor.CBORObject;
@@ -39,7 +42,6 @@ public class CborTree {
 
 	public static void PutEntry(CBORObject tree, String path, Object x) {
 		var o = CBORObject.FromObject(x);
-		System.out.println("(0)" + o.getType());
 		CreateEntry(tree, path, o);
 	}
 
@@ -49,18 +51,14 @@ public class CborTree {
 		var parent = tree;
 		for (int i = 0; i < split.length - 1; i++) {
 			var x = parent.get(split[i]);
-			System.out.println("x=" + x.ToJSONString());
 			if (x == null || x.getType() != CBORType.Map) {
 				return CBORObject.Undefined;
 			}
 			parent = x;
 		}
-		System.out.println("(1)");
 		String last = split[split.length - 1];
-		System.out.println("(2)");
 		if (last == "")
 			return parent;
-		System.out.println("(3)");
 		CBORObject item = parent.get(last);
 		if (item == null)
 			return CBORObject.Undefined;
@@ -92,5 +90,28 @@ public class CborTree {
 		default:
 			break;
 		}
+	}
+
+	public static CBORObject LoadResourceTree(String path) throws Exception {
+		var result = CborTree.Create();
+		if (path == null || path == ".") {
+			path = "";
+		} else if (!path.endsWith("/")) {
+			path = path + "/";
+		}
+		Pattern pattern;
+		pattern = Pattern.compile(".*");
+		final Collection<String> list = ResourceList.getResources(pattern);
+		for (final String name : list) {
+			if (name.startsWith(path))
+			{
+				byte[] bytes = null;
+				if (!name.endsWith("/")) {
+					bytes = ResourceUtil.GetBinary(name);
+				}
+				CborTree.PutEntry(result, name, bytes);
+			}
+		}
+		return result;
 	}
 }
