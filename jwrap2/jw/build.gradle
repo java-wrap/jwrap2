@@ -52,6 +52,10 @@ dependencies {
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.14.2'
 	// https://search.maven.org/artifact/com.amazon.ion/ion-java/1.9.5/jar?eh=
 	implementation 'com.amazon.ion:ion-java:1.9.5'
+	// https://mvnrepository.com/artifact/org.mongodb/bson
+	implementation 'org.mongodb:bson:4.9.0'
+	// https://mvnrepository.com/artifact/io.netty/netty-buffer
+	implementation 'io.netty:netty-buffer:4.1.90.Final'
 }
 
 application {

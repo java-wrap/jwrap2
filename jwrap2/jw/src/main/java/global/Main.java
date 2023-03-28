@@ -27,6 +27,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.dataformat.smile.*;
 import com.amazon.ion.*;
@@ -37,69 +38,149 @@ import com.amazon.ion.util.IonValueUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import org.bson.Document;
+import org.bson.BsonBinaryReader;
+import org.bson.BsonReader;
+import org.bson.RawBsonDocument;
+import org.bson.BsonDocument;
+import org.bson.BsonWriter;
+import org.bson.codecs.EncoderContext;
+import org.bson.*;
+import org.bson.io.*;
+import org.bson.json.JsonWriter;
+import org.bson.json.JsonWriterSettings;
+
+import java.io.FileInputStream;
+
+import org.bson.BsonDocument;
+import org.bson.BsonSerializationException;
+import org.bson.BsonWriter;
+import java.io.ByteArrayOutputStream;
+
+import org.bson.BsonBinaryWriter;
+import org.bson.BsonDocument;
+import org.bson.BsonSerializationException;
+import org.bson.ByteBufNIO;
+import org.bson.codecs.BsonDocumentCodec;
+import org.bson.io.BasicOutputBuffer;
+import org.bson.BsonArray;
+import org.bson.BsonInt32;
+import org.bson.BsonString;
+import org.bson.BsonArray;
+import org.bson.BsonInt32;
+import org.bson.BsonString;
+import org.bson.json.JsonWriter;
+import java.io.StringWriter;
+
 public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
-		
-	    IonSystem sys1 = IonSystemBuilder.standard().build();
 
-	    IonList parent = sys1.newEmptyList();
-	    IonInt  child  = sys1.newInt(23);
-	    parent.add(child);
-	    IonStruct struct = sys1.newEmptyStruct();
-	    struct.put("f").newInt(3);
-	    struct.put("bin").newBlob("hello".getBytes(Charsets.UTF_8));
-	    IonList list = sys1.newEmptyList();
-	    list.add().newString("demo");
-	    parent.add(struct);
-	    parent.add(list);
-	    String pretty = parent.toPrettyString();
-	    System.out.println(pretty);
-	    var loader = sys1.getLoader();
-	    IonDatagram loaded = loader.load(pretty);
-	    System.out.println(loaded.toPrettyString());
-	    System.out.println(loaded.getClass().getName());
-	    System.out.println( loaded.size() );
-	    System.out.println( loaded.get(0).toPrettyString() );
-	    System.out.println( loaded.toArray()[0].getClass().getName() );
-	    IonList list2 = (IonList)loaded.toArray()[0];
-	    System.out.println( list2.get(1).toString() );
-	    var loaded2 = loader.load("{f:3}{f:4}");
-	    System.out.println(loaded2.size());
-	    System.out.println(loaded2.toPrettyString());
-	    var binEncoded = loaded2.getBytes();
-	    var binLoaded = loader.load(binEncoded);
-	    System.out.println(binLoaded.toPrettyString());
+        Document bsonDocument = new Document("name", "John").append("age", 30);
+        String json = bsonDocument.toJson();
+        System.out.println(json);
+        var bd = bsonDocument.toBsonDocument();
+        BsonArray array = new BsonArray();
+        array.add(new BsonInt32(1));
+        array.add(new BsonInt32(2));
+        array.add(new BsonString("three"));
+        bd.put("ary", array);
+        System.out.println(bd.toJson(JsonWriterSettings.builder().indent(true).build()));
 
-		//IonTextWriterBuilder textWriterBuilder = IonTextWriterBuilder.standard();
+        //		final Document doc = new Document("myKey", "myValue");
+//		final String jsonString = doc.toJson();
+//		final Document doc2 = Document.parse(jsonString);
+//		var bsonDoc = doc.toBsonDocument();
+//        StringWriter writer = new StringWriter();
+//        JsonWriter jsonWriter = new JsonWriter(writer);
+//        jsonWriter.writeStartArray();
+//        for (int i = 0; i < array.size(); i++) {
+//            jsonWriter.write(array.get(i));
+//        }
+//        jsonWriter.writeEndArray();
+//        String json = writer.toString();
+//        System.out.println(json);
+
+		// バイト列のBSONデータ
+		byte[] bsonBytes = null;
+		try (FileInputStream inputStream = new FileInputStream(new File("C:/ProgramData/bson.bin"));
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+			byte[] buffer = new byte[256];
+			int length;
+			while ((length = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, length);
+			}
+			bsonBytes = outputStream.toByteArray();
+		}
+		// RawBsonDocumentを作成
+		BsonDocument doc = BsonUtil.FromBytes(bsonBytes);
+		System.out.println(doc);
+		byte[] bsonBytes2 = BsonUtil.ToBytes(doc);
+		BsonDocument doc2 = BsonUtil.FromBytes(bsonBytes2);
+		System.out.println(doc2);
+
+		System.exit(0);
+
+		IonSystem sys1 = IonSystemBuilder.standard().build();
+
+		IonList parent = sys1.newEmptyList();
+		IonInt child = sys1.newInt(23);
+		parent.add(child);
+		IonStruct struct = sys1.newEmptyStruct();
+		struct.put("f").newInt(3);
+		struct.put("bin").newBlob("hello".getBytes(Charsets.UTF_8));
+		IonList list = sys1.newEmptyList();
+		list.add().newString("demo");
+		parent.add(struct);
+		parent.add(list);
+		String pretty = parent.toPrettyString();
+		System.out.println(pretty);
+		var loader = sys1.getLoader();
+		IonDatagram loaded = loader.load(pretty);
+		System.out.println(loaded.toPrettyString());
+		System.out.println(loaded.getClass().getName());
+		System.out.println(loaded.size());
+		System.out.println(loaded.get(0).toPrettyString());
+		System.out.println(loaded.toArray()[0].getClass().getName());
+		IonList list2 = (IonList) loaded.toArray()[0];
+		System.out.println(list2.get(1).toString());
+		var loaded2 = loader.load("{f:3}{f:4}");
+		System.out.println(loaded2.size());
+		System.out.println(loaded2.toPrettyString());
+		var binEncoded = loaded2.getBytes();
+		var binLoaded = loader.load(binEncoded);
+		System.out.println(binLoaded.toPrettyString());
+
+		// IonTextWriterBuilder textWriterBuilder = IonTextWriterBuilder.standard();
 		IonTextWriterBuilder textWriterBuilder = IonTextWriterBuilder.pretty();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		String ionStr = null;
-		try(IonWriter writer = textWriterBuilder.build(out))
-		{
-		    writer.stepIn(IonType.STRUCT);  // step into a struct
-		    writer.setFieldName("hello");   // set the field name for the next value to be written
-		    writer.writeString("world");    // write the next value
-		    writer.setFieldName("my-list");   // set the field name for the next value to be written
-		    writer.stepIn(IonType.LIST);
-		    writer.writeInt(123);
-		    writer.stepOut();               // step out of the struct
-		    writer.stepOut();               // step out of the struct
-		    writer.close();
-		    ionStr = out.toString(Charsets.UTF_8);
-		    System.out.println(ionStr);
+		try (IonWriter writer = textWriterBuilder.build(out)) {
+			writer.stepIn(IonType.STRUCT); // step into a struct
+			writer.setFieldName("hello"); // set the field name for the next value to be written
+			writer.writeString("world"); // write the next value
+			writer.setFieldName("my-list"); // set the field name for the next value to be written
+			writer.stepIn(IonType.LIST);
+			writer.writeInt(123);
+			writer.stepOut(); // step out of the struct
+			writer.stepOut(); // step out of the struct
+			writer.close();
+			ionStr = out.toString(Charsets.UTF_8);
+			System.out.println(ionStr);
 		}
 
 		ByteArrayInputStream in = new ByteArrayInputStream(ionStr.getBytes(Charsets.UTF_8));
 		IonReaderBuilder readerBuilder = IonReaderBuilder.standard();
 		try (IonReader reader = readerBuilder.build(ionStr)) {
-		    reader.next();                                // position the reader at the first value, a struct
-		    reader.stepIn();                              // step into the struct
-		    reader.next();                                // position the reader at the first value in the struct
-		    String fieldName = reader.getFieldName();     // retrieve the current value's field name
-		    String value = reader.stringValue();          // retrieve the current value's String value
-		    reader.stepOut();                             // step out of the struct
-		    System.out.println(fieldName + " " + value);  // prints "hello world"
+			reader.next(); // position the reader at the first value, a struct
+			reader.stepIn(); // step into the struct
+			reader.next(); // position the reader at the first value in the struct
+			String fieldName = reader.getFieldName(); // retrieve the current value's field name
+			String value = reader.stringValue(); // retrieve the current value's String value
+			reader.stepOut(); // step out of the struct
+			System.out.println(fieldName + " " + value); // prints "hello world"
 		}
 		System.exit(0);
 
