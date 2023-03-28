@@ -19,6 +19,7 @@ public class Misc
         }
     }
 
+#if false
     public static byte[] ReadBinaryFile(string filePath)
     {
         // ファイルを開く
@@ -35,6 +36,7 @@ public class Misc
             }
         }
     }
+#endif
 
     public static void WriteBinaryFile(string filePath, byte[] data)
     {
@@ -64,6 +66,7 @@ public class Misc
         }
     }
 
+#if false   
     public static byte[] GetLastUtf8Bytes(string filePath)
     {
         byte[] fileData = Misc.ReadBinaryFile(filePath);
@@ -91,4 +94,5 @@ public class Misc
             fs.Write(bytes, 0, bytes.Length);
         }
     }
+#endif
 }

@@ -71,6 +71,7 @@ public class JniUtil
             items, argsElem, propsElem);
         XDocument doc = new XDocument(root);
 
+        Console.WriteLine(doc.ToString());
         IntPtr result = myFunction(doc.ToString());
         string str = Marshal.PtrToStringUni(result);
 

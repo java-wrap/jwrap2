@@ -25,6 +25,7 @@
     <!--
     <PackageReference Include="JavaCommons" Version="2023.322.410.44" />
     -->
+    <PackageReference Include="PeterO.Cbor" Version="4.5.2" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants>JWRAP_HEAD</DefineConstants>
