@@ -88,6 +88,8 @@ public class Main {
         array.add(new BsonString("three"));
         bd.put("ary", array);
         System.out.println(bd.toJson(JsonWriterSettings.builder().indent(true).build()));
+        System.out.println(BsonUtil.ToJson(bd, true));
+        BsonUtil.Dump(bd);
 
         //		final Document doc = new Document("myKey", "myValue");
 //		final String jsonString = doc.toJson();
@@ -115,10 +117,10 @@ public class Main {
 			bsonBytes = outputStream.toByteArray();
 		}
 		// RawBsonDocumentを作成
-		BsonDocument doc = BsonUtil.FromBytes(bsonBytes);
+		BsonDocument doc = BsonUtil.DecodeFromBytes(bsonBytes);
 		System.out.println(doc);
-		byte[] bsonBytes2 = BsonUtil.ToBytes(doc);
-		BsonDocument doc2 = BsonUtil.FromBytes(bsonBytes2);
+		byte[] bsonBytes2 = BsonUtil.EncodeToBytes(doc);
+		BsonDocument doc2 = BsonUtil.DecodeFromBytes(bsonBytes2);
 		System.out.println(doc2);
 
 		System.exit(0);
