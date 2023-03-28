@@ -48,6 +48,7 @@ public class Main {
 	    parent.add(child);
 	    IonStruct struct = sys1.newEmptyStruct();
 	    struct.put("f").newInt(3);
+	    struct.put("bin").newBlob("hello".getBytes(Charsets.UTF_8));
 	    IonList list = sys1.newEmptyList();
 	    list.add().newString("demo");
 	    parent.add(struct);
