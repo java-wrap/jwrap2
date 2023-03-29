@@ -107,6 +107,10 @@ public class Main {
 		BsonUtil.Dump(doc2);
 		doc2.put("mod", new BsonString("aaa"));
 		BsonUtil.Dump(doc2);
+		
+		BsonUtil.PutBsonToFileEnd("c:/programdata/dummy.bin", doc2);
+		var doc3 = BsonUtil.GetBsonFromFileEnd("c:/programdata/dummy.bin");
+		BsonUtil.Dump(doc3, "doc3");
 
 		System.exit(0);
 
