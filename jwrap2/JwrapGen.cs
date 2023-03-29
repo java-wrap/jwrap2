@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 using PeterO.Cbor;
 
 #if JWRAP_GEN
@@ -59,7 +60,7 @@ public class JwrapGen
                         throw new Exception($"File not exist: {options.FilePath}");
                     }
 
-                    
+
                     byte[] bootClassData = File.ReadAllBytes(bootClassPath);
                     //byte[] bootJarData = Misc.ReadBinaryFile(bootJarPath);
                     byte[] bootDllData = File.ReadAllBytes(bootDllPath);
@@ -72,6 +73,31 @@ public class JwrapGen
                     if (mainClass == null) mainClass = "global.Main";
                     //Win32Res.WriteResourceData(exePath, "JWRAP", "MAIN", Encoding.UTF8.GetBytes(mainClass));
 #if true
+                    JObject tree1 = new JObject();
+                    tree1["main"] = mainClass;
+                    tree1["guid"] = Misc.GetGuidString();
+                    tree1["sha"] = Misc.GetSha512String(jarData);
+                    tree1["boot.class"] = bootClassData;
+                    tree1["boot.dll"] = bootDllData;
+                    tree1["jar"] = jarData;
+                    tree1["main"] = mainClass;
+                    //Console.WriteLine(tree1.ToJSONString());
+                    string jarDir = Directory.GetParent(options.FilePath).ToString();
+                    string[] files = Directory.GetFiles(jarDir, "*.dll"); // ディレクトリ内の".dll"で終わるファイル名の一覧を取得
+                    JObject dllDict = new JObject();
+                    foreach (var file in files)
+                    {
+                        Misc.Log(file);
+                        Misc.Log(Path.GetFileName(file));
+                        dllDict[Path.GetFileName(file)] = File.ReadAllBytes(file);
+                    }
+
+                    tree1["dlls"] = dllDict;
+                    //Console.WriteLine(tree1);
+                    BsonUtil.PutToFileEnd(exePath, tree1);
+                    var tree2 = BsonUtil.GetFromFileEnd(exePath);
+                    //Console.WriteLine(tree2);
+#else
                     CBORObject tree1 = CborTree.Create();
                     CborTree.PutEntry(tree1, "main", mainClass);
                     CborTree.PutEntry(tree1, "guid", Misc.GetGuidString());
@@ -94,34 +120,11 @@ public class JwrapGen
                     CborUtil.PutOneToFileEnd(exePath, tree1);
                     var tree2 = CborUtil.GetOneFromFileEnd(exePath);
                     CborTree.DumpTree(tree2);
-#else
-                    XElement root = new XElement("xml",
-                        new XElement("main", mainClass),
-                        new XElement("guid", Misc.GetGuidString()),
-                        new XElement("sha", Misc.GetSha512String(jarData)),
-                        new XElement("boot.class", Convert.ToBase64String(bootClassData)),
-                        new XElement("boot.dll", Convert.ToBase64String(bootDllData)),
-                        new XElement("jar", Convert.ToBase64String(jarData))
-                    );
-                    XElement dlls = new XElement("dlls");
-                    string jarDir = Directory.GetParent(options.FilePath).ToString();
-                    string[] files = Directory.GetFiles(jarDir, "*.dll"); // ディレクトリ内の".dll"で終わるファイル名の一覧を取得
-                    foreach (var file in files)
+                    if (false)
                     {
-                        Misc.Log(file);
-                        Misc.Log(Path.GetFileName(file));
-                        XElement dll = new XElement("dll",
-                            new XElement("name", Path.GetFileName(file)),
-                            new XElement("binary", Convert.ToBase64String(File.ReadAllBytes(file)))
-                        );
-                        dlls.Add(dll);
+                        JObject jo = new JObject();
+                        BsonUtil.PutToFileEnd(exePath, jo);
                     }
-
-                    root.Add(dlls);
-                    XDocument doc = new XDocument(root);
-                    byte[] docBytes = Encoding.UTF8.GetBytes(doc.ToString());
-                    Misc.PutLastUtf8Bytes(exePath, docBytes);
-                    //Win32Res.WriteResourceData(exePath, "JWRAP", "XML", Encoding.UTF8.GetBytes(doc.ToString()));
 #endif
                 });
             //SeparateMain(args);

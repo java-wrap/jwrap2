@@ -29,11 +29,9 @@
     <PackageReference Include="PeterO.Cbor" Version="4.5.2" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="BsonLibrary">
-      <!--
-      <HintPath>https://github.com/javacommons/java.library/releases/download/jar/BsonLibrary.dll</HintPath>
-      -->
-      <HintPath>BsonLibrary.dll</HintPath>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Reference Include="jwrap2-cs">
+      <HintPath>jwrap2-cs.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup>

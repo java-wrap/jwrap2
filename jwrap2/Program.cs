@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
+using Newtonsoft.Json.Linq;
 using PeterO.Cbor;
 
 namespace jwrap;
@@ -15,6 +16,7 @@ using System.Net;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using Ultimate;
 
 public static class Program
 {
@@ -76,7 +78,78 @@ public static class Program
             if (i > 0) argList += " ";
             argList += $"\"{args[i]}\"";
         }
+#if true
+        var tree1 = BsonUtil.GetFromFileEnd(Application.ExecutablePath);
+        Misc.Log((string)tree1["main"]);
+        Misc.Log((string)tree1["guid"]);
+        Misc.Log((string)tree1["sha"]);
+        byte[] bootClassData = (byte[])tree1["boot.class"];
+        byte[] bootDllData = (byte[])tree1["boot.dll"];
+        byte[] jarData = (byte[])tree1["jar"];
+        Misc.Log($"jarData={jarData.Length}");
+        string guid = (string)tree1["guid"];
+        string sha512 = (string)tree1["sha"];
+        Misc.Log($"guid={guid}");
+        Misc.Log($"sha512={sha512}");
+        string mainClass = (string)tree1["main"];
+        //var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); // C:\ProgramData
+        var rootPath = $"{profilePath}\\.jwap\\.app";
+        Directory.CreateDirectory(rootPath);
+        //string jarPath = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}.jar";
+        string appDir = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}";
+        Misc.Log(appDir);
+        Misc.Log("SeparateMain(3)");
+        if (!Directory.Exists(appDir))
+        {
+            Misc.Log("SeparateMain(3.1)");
+            string timestamp = GetTimeStampString();
+            Directory.CreateDirectory($"{appDir}.{timestamp}");
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.class", bootClassData);
+            //Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.jar", bootJarData);
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.dll", bootDllData);
+            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\main.jar", jarData);
+            var dlls = (JObject)tree1["dlls"];
+            Misc.Log("SeparateMain(3.2)");
+            {
+                if (dlls.Count > 0)
+                {
+                    Directory.CreateDirectory($"{appDir}.{timestamp}\\dll");
+                }
+                
+                foreach (var dll in dlls)
+                {
+                    Misc.Log("SeparateMain(3.3)");
+                    //Misc.Log(dll);
+                    Misc.Log((string)dll.Key);
+                    string dllName = dll.Key;
+                    Misc.Log("SeparateMain(3.3.1)");
+                    byte[] dllBinary = (byte[])dll.Value;
+                    Misc.Log("SeparateMain(3.3.2)");
+                    Misc.Log($"Writing {dllName}");
+                    Misc.WriteBinaryFile($"{appDir}.{timestamp}\\dll\\{dllName}", dllBinary);
+                    Misc.Log("SeparateMain(3.3.3)");
+                }
+            }
 
+            Misc.Log("SeparateMain(3.4)");
+            Directory.Move($"{appDir}.{timestamp}", appDir);
+            Misc.Log("SeparateMain(3.5)");
+        }
+
+        Misc.Log("SeparateMain(4)");
+        string jre = PrepareJre(Constants.JRE_URL);
+        Misc.Log(jre);
+
+        //JniUtil.RunClassMain(jre, mainClass, args, new string[] { $"{jarPath}\\main.jar" });
+        string errorMessage = JniUtil.RunClassMain(jre, mainClass, args, appDir);
+        if (errorMessage != "")
+        {
+            Win32Api.Message(errorMessage, Path.GetFileName(Application.ExecutablePath));
+            Environment.Exit(1);
+        }
+        return;
+#else
         var tree1 = CborUtil.GetOneFromFileEnd(Application.ExecutablePath);
         CborTree.DumpTree(tree1);
         Misc.Log(CborTree.GetEntry(tree1, "main").ToJSONString());
@@ -149,81 +222,8 @@ public static class Program
             Win32Api.Message(errorMessage, Path.GetFileName(Application.ExecutablePath));
             Environment.Exit(1);
         }
-#if false        
-        Misc.Log("SeparateMain(2)");
-        byte[] buffer = Misc.GetLastUtf8Bytes(Application.ExecutablePath);
-        string xml = Encoding.UTF8.GetString(buffer);
-        XDocument doc = XDocument.Parse(xml);
-        var root = doc.Root;
-        Misc.Log(root.XPathSelectElement("./main"));
-        Misc.Log(root.XPathSelectElement("./guid"));
-        Misc.Log(root.XPathSelectElement("./sha512"));
-        byte[] bootClassData = Convert.FromBase64String(root.XPathSelectElement("./boot.class").Value);
-        //byte[] bootJarData = Convert.FromBase64String(root.XPathSelectElement("./boot.jar").Value);
-        byte[] bootDllData = Convert.FromBase64String(root.XPathSelectElement("./boot.dll").Value);
-        byte[] jarData = Convert.FromBase64String(root.XPathSelectElement("./jar").Value);
-        Misc.Log($"jarData={jarData.Length}");
-        string guid = root.XPathSelectElement("./guid").Value;
-        string sha512 = root.XPathSelectElement("./sha").Value;
-        Misc.Log($"guid={guid}");
-        Misc.Log($"sha512={sha512}");
-        string mainClass = root.XPathSelectElement("./main").Value;
-        //var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var profilePath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); // C:\ProgramData
-        var rootPath = $"{profilePath}\\.jwap\\.app";
-        Directory.CreateDirectory(rootPath);
-        //string jarPath = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}.jar";
-        string appDir = $"{rootPath}\\{Path.GetFileNameWithoutExtension(Application.ExecutablePath)}+{guid}+{sha512}";
-        Misc.Log(appDir);
-        Misc.Log("SeparateMain(3)");
-        if (!Directory.Exists(appDir))
-        {
-            Misc.Log("SeparateMain(3.1)");
-            string timestamp = GetTimeStampString();
-            Directory.CreateDirectory($"{appDir}.{timestamp}");
-            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.class", bootClassData);
-            //Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.jar", bootJarData);
-            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\boot.dll", bootDllData);
-            Misc.WriteBinaryFile($"{appDir}.{timestamp}\\main.jar", jarData);
-            var dlls = root.XPathSelectElements("//dll");
-            Misc.Log("SeparateMain(3.2)");
-            if (dlls.Count() > 0)
-            {
-                Directory.CreateDirectory($"{appDir}.{timestamp}\\dll");
-            }
-            foreach (var dll in dlls)
-            {
-                Misc.Log("SeparateMain(3.3)");
-                //Misc.Log(dll);
-                Misc.Log(dll.Elements().Count());
-                Misc.Log(dll.XPathSelectElement("./name"));
-                string dllName = dll.XPathSelectElement("./name").Value;
-                Misc.Log("SeparateMain(3.3.1)");
-                byte[] dllBinary = Convert.FromBase64String(dll.XPathSelectElement("./binary").Value);
-                Misc.Log("SeparateMain(3.3.2)");
-                Misc.Log($"Writing {dllName}");
-                Misc.WriteBinaryFile($"{appDir}.{timestamp}\\dll\\{dllName}", dllBinary);
-                Misc.Log("SeparateMain(3.3.3)");
-            }
-
-            Misc.Log("SeparateMain(3.4)");
-            Directory.Move($"{appDir}.{timestamp}", appDir);
-            Misc.Log("SeparateMain(3.5)");
-        }
-
-        Misc.Log("SeparateMain(4)");
-        string jre = PrepareJre(Constants.JRE_URL);
-        Misc.Log(jre);
-
-        //JniUtil.RunClassMain(jre, mainClass, args, new string[] { $"{jarPath}\\main.jar" });
-        string errorMessage = JniUtil.RunClassMain(jre, mainClass, args, appDir);
-        if (errorMessage != "")
-        {
-            Win32Api.Message(errorMessage, Path.GetFileName(Application.ExecutablePath));
-            Environment.Exit(1);
-        }
-#endif
         return;
+#endif
     }
 
     private static void DownloadBinaryFromUrl(string url, string destinationPath)
