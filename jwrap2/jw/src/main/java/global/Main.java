@@ -16,6 +16,7 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -119,6 +120,8 @@ public class Main {
 		// RawBsonDocumentを作成
 		BsonDocument doc = BsonUtil.DecodeFromBytes(bsonBytes);
 		System.out.println(doc);
+		BsonDateTime b = doc.get("b").asDateTime();
+		System.out.println( new Date(b.getValue()) );
 		var bb = doc.get("c").asBinary();
 		var bbBytes = bb.getData();
 		System.out.println(new String(bbBytes, Charsets.UTF_8));
