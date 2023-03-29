@@ -105,6 +105,8 @@ public class Main {
 		byte[] bsonBytes2 = BsonUtil.EncodeToBytes(doc);
 		BsonDocument doc2 = BsonUtil.DecodeFromBytes(bsonBytes2);
 		BsonUtil.Dump(doc2);
+		doc2.put("mod", new BsonString("aaa"));
+		BsonUtil.Dump(doc2);
 
 		System.exit(0);
 

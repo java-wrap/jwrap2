@@ -1,5 +1,6 @@
 package global;
 
+import org.bson.BsonArray;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonDocument;
 import org.bson.BsonNull;
@@ -30,15 +31,32 @@ public class BsonUtil {
 
 	public static BsonDocument DecodeFromBytes(byte[] bytes) {
 		RawBsonDocument rawDoc = new RawBsonDocument(bytes);
-		//BsonDocument doc = rawDoc.toBsonDocument();
-		//BsonDocument doc = rawDoc;
-		return rawDoc;
+		// return rawDoc;
+		return DecodeFromBytes_Helper(rawDoc).asDocument();
+	}
+
+	private static BsonValue DecodeFromBytes_Helper(BsonValue x) {
+		if (x.isDocument()) {
+			var result = new BsonDocument();
+			var keys = x.asDocument().keySet();
+			for (var key : keys) {
+				result.put(key, DecodeFromBytes_Helper(x.asDocument().get(key)));
+			}
+			return result;
+		} else if (x.isArray()) {
+			var result = new BsonArray();
+			for (int i = 0; i < x.asArray().size(); i++) {
+				result.set(i, DecodeFromBytes_Helper(x.asArray().get(i)));
+			}
+			return result;
+		}
+		return x;
 	}
 
 	public static String ToJson(BsonDocument doc, boolean indent) {
 		return doc.toJson(JsonWriterSettings.builder().indent(indent).build());
 	}
-	
+
 	public static void Dump(BsonValue val) {
 		var doc = new BsonDocument();
 		Dump(val, "");
