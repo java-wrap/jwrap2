@@ -30,8 +30,9 @@ public class BsonUtil {
 
 	public static BsonDocument DecodeFromBytes(byte[] bytes) {
 		RawBsonDocument rawDoc = new RawBsonDocument(bytes);
-		BsonDocument doc = rawDoc.toBsonDocument();
-		return doc;
+		//BsonDocument doc = rawDoc.toBsonDocument();
+		//BsonDocument doc = rawDoc;
+		return rawDoc;
 	}
 
 	public static String ToJson(BsonDocument doc, boolean indent) {
@@ -40,15 +41,12 @@ public class BsonUtil {
 	
 	public static void Dump(BsonValue val) {
 		var doc = new BsonDocument();
-		Dump(val, val.getClass().getName());
-//		doc.put(";!", new BsonString(val.getClass().getName()));
-//		doc.put(";?", val);
-//		System.out.println(ToJson(doc, true));
+		Dump(val, "");
 	}
 
 	public static void Dump(BsonValue val, String title) {
 		var doc = new BsonDocument();
-		doc.put(";!", new BsonString(title + "(" + val.getClass().getName() + ")"));
+		doc.put(";!", new BsonString(title + "[" + val.getClass().getName() + "]"));
 		doc.put(";?", val);
 		System.out.println(ToJson(doc, true));
 	}
