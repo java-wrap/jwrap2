@@ -92,20 +92,6 @@ public class Main {
         System.out.println(BsonUtil.ToJson(bd, true));
         BsonUtil.Dump(bd);
 
-        //		final Document doc = new Document("myKey", "myValue");
-//		final String jsonString = doc.toJson();
-//		final Document doc2 = Document.parse(jsonString);
-//		var bsonDoc = doc.toBsonDocument();
-//        StringWriter writer = new StringWriter();
-//        JsonWriter jsonWriter = new JsonWriter(writer);
-//        jsonWriter.writeStartArray();
-//        for (int i = 0; i < array.size(); i++) {
-//            jsonWriter.write(array.get(i));
-//        }
-//        jsonWriter.writeEndArray();
-//        String json = writer.toString();
-//        System.out.println(json);
-
 		// バイト列のBSONデータ
 		byte[] bsonBytes = null;
 		try (FileInputStream inputStream = new FileInputStream(new File("C:/ProgramData/bson.bin"));
@@ -119,7 +105,7 @@ public class Main {
 		}
 		// RawBsonDocumentを作成
 		BsonDocument doc = BsonUtil.DecodeFromBytes(bsonBytes);
-		System.out.println(doc);
+		BsonUtil.Dump(doc);
 		BsonDateTime b = doc.get("b").asDateTime();
 		System.out.println( new Date(b.getValue()) );
 		var bb = doc.get("c").asBinary();
@@ -127,7 +113,7 @@ public class Main {
 		System.out.println(new String(bbBytes, Charsets.UTF_8));
 		byte[] bsonBytes2 = BsonUtil.EncodeToBytes(doc);
 		BsonDocument doc2 = BsonUtil.DecodeFromBytes(bsonBytes2);
-		System.out.println(doc2);
+		BsonUtil.Dump(doc2);
 
 		System.exit(0);
 
