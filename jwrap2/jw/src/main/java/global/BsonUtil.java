@@ -69,4 +69,14 @@ public class BsonUtil {
 		System.out.println(ToJson(doc, true));
 	}
 
+	public void PutBsonToFileEnd(String filePath, BsonDocument doc) throws Exception {
+		byte[] bytes = EncodeToBytes(doc);
+		MiscUtil.PutBytesToFileEnd(filePath, bytes);
+	}
+
+	public BsonDocument GetBsonFromFileEnd(String filePath) throws Exception {
+		byte[] bytes = MiscUtil.GetBytesFromFileEnd(filePath);
+		return DecodeFromBytes(bytes);
+	}
+
 }
