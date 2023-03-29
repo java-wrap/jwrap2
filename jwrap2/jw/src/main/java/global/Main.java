@@ -119,6 +119,9 @@ public class Main {
 		// RawBsonDocumentを作成
 		BsonDocument doc = BsonUtil.DecodeFromBytes(bsonBytes);
 		System.out.println(doc);
+		var bb = doc.get("c").asBinary();
+		var bbBytes = bb.getData();
+		System.out.println(new String(bbBytes, Charsets.UTF_8));
 		byte[] bsonBytes2 = BsonUtil.EncodeToBytes(doc);
 		BsonDocument doc2 = BsonUtil.DecodeFromBytes(bsonBytes2);
 		System.out.println(doc2);
