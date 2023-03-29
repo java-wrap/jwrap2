@@ -80,18 +80,18 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Hello World!");
 
-        Document bsonDocument = new Document("name", "John").append("age", 30);
-        String json = bsonDocument.toJson();
-        System.out.println(json);
+        BsonDocument bsonDocument = new BsonDocument();
         var bd = bsonDocument.toBsonDocument();
+        bd.put("a", new BsonString("hello"));
         BsonArray array = new BsonArray();
         array.add(new BsonInt32(1));
         array.add(new BsonInt32(2));
         array.add(new BsonString("three"));
+        BsonUtil.Dump(array);
         bd.put("ary", array);
-        System.out.println(bd.toJson(JsonWriterSettings.builder().indent(true).build()));
-        System.out.println(BsonUtil.ToJson(bd, true));
-        BsonUtil.Dump(bd);
+        //System.out.println(bd.toJson(JsonWriterSettings.builder().indent(true).build()));
+        //System.out.println(BsonUtil.ToJson(bd, true));
+        BsonUtil.Dump(bd, "bd");
 
 		byte[] bsonBytes = FileUtils.readFileToByteArray(new File("C:/ProgramData/bson.bin"));
 		// RawBsonDocumentを作成
