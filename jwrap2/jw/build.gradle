@@ -24,10 +24,13 @@ wrapper() {
 def urlFile = { url ->
     def parts = url.split("/")
     def lastPart = parts[-1]
-    println lastPart
-    File file = new File("$buildDir/download/${lastPart}")
+    //println lastPart
+    def filePath = "$buildDir/download/${lastPart}"
+    File file = new File(filePath)
     file.parentFile.mkdirs()
     if (!file.exists()) file.delete()
+    println("Downloading from ${url}")
+    println("  to ${filePath}")
     new URL(url).withInputStream { downloadStream ->
         file.withOutputStream { fileOut ->
             fileOut << downloadStream
