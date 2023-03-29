@@ -27,6 +27,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 
@@ -92,17 +93,7 @@ public class Main {
         System.out.println(BsonUtil.ToJson(bd, true));
         BsonUtil.Dump(bd);
 
-		// バイト列のBSONデータ
-		byte[] bsonBytes = null;
-		try (FileInputStream inputStream = new FileInputStream(new File("C:/ProgramData/bson.bin"));
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-			byte[] buffer = new byte[256];
-			int length;
-			while ((length = inputStream.read(buffer)) != -1) {
-				outputStream.write(buffer, 0, length);
-			}
-			bsonBytes = outputStream.toByteArray();
-		}
+		byte[] bsonBytes = FileUtils.readFileToByteArray(new File("C:/ProgramData/bson.bin"));
 		// RawBsonDocumentを作成
 		BsonDocument doc = BsonUtil.DecodeFromBytes(bsonBytes);
 		BsonUtil.Dump(doc);
